@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Hero
   m_EditorClassIdentifier: 
   speed: 5
-  lookSpeed: 5
+  lookSpeed: 720
   stoppingDist: 1.25
   areaDetectorSize: 8
+  visionRange: 5
+  visionAngle: 120
+  wanderRadius: 5

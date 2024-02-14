@@ -61,20 +61,20 @@ namespace AgentControllers
             Debug.Log("Chasing Hero");
             var dir = (_currHeroTarget.transform.position - transform.position).normalized;
             _agent.Move(dir, _params.AgentSpeed, Time.deltaTime);
-
-            var lookDir = dir * _params.AgentSpeed;
+            
+            var lookDir = dir;
             lookDir.y = 0;
-            _agent.LookAt(Vector3.Lerp(transform.forward, lookDir, Time.deltaTime * _params.LookSpeed));
+            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
         }
         
         private void DoWander()
         {
             var dir = (wanderPos - transform.position).normalized;
             _agent.Move(dir, _params.AgentSpeed, Time.deltaTime);
-
-            var lookDir = dir * _params.AgentSpeed;
+            
+            var lookDir = dir;
             lookDir.y = 0;
-            _agent.LookAt(Vector3.Lerp(transform.forward, lookDir, Time.deltaTime * _params.LookSpeed));
+            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
 
             if (ReachedTargetPosition(wanderPos))
             {
@@ -86,7 +86,7 @@ namespace AgentControllers
         {
             var dir = target.position - transform.position;
             var angle = Vector3.SignedAngle(dir, transform.forward, transform.forward);
-            return (angle <= _params.VisionAngle / 2);
+            return (angle >= -_params.VisionAngle / 2) && (angle <= _params.VisionAngle / 2);
         }
 
         private void OnTriggerEnter(Collider other)
@@ -94,12 +94,14 @@ namespace AgentControllers
             if (_currHeroTarget != null)
                 return;
 
-            if (!IsVisible(other.transform))
-                return;
-
             var hero = other.GetComponent<HeroController>();
             if (hero == null)
                 return;
+            
+            if (!IsVisible(other.transform))
+                return;
+            
+            
             _currHeroTarget = hero;
             hero.MarkChasedByGuard(true);
         }
@@ -109,13 +111,13 @@ namespace AgentControllers
             if (_currHeroTarget != null)
                 return;
 
-            if (!IsVisible(other.transform))
-                return;
-
             var hero = other.GetComponent<HeroController>();
             if (hero == null)
                 return;
-
+            
+            if (!IsVisible(other.transform))
+                return;
+            
             _currHeroTarget = hero;
             hero.MarkChasedByGuard(true);
         }

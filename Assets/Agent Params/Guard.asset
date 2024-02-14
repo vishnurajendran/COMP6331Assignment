@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Guard
   m_EditorClassIdentifier: 
   speed: 3
-  lookSpeed: 5
+  lookSpeed: 720
   stoppingDist: 1.25
   areaDetectorSize: 0
   visionRange: 5

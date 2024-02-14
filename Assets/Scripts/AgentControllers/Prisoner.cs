@@ -12,13 +12,11 @@ namespace AgentControllers
             
             Vector3 move = Vector3.zero;
             move += SeekTarget(_target);
-
-            move = Vector3.ClampMagnitude(move, 1);
-            _agent.Move(move, _params.AgentSpeed, Time.deltaTime);
             
-            var lookDir = move * _params.AgentSpeed;
+            _agent.Move(move.normalized, _params.AgentSpeed, Time.deltaTime);
+            var lookDir = move;
             lookDir.y = 0;
-            _agent.LookAt(Vector3.Lerp(transform.forward, lookDir, Time.deltaTime * _params.AgentSpeed));
+            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
         }
     }
 }

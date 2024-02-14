@@ -13,5 +13,9 @@ MonoBehaviour:
   m_Name: Prisoner
   m_EditorClassIdentifier: 
   speed: 4
+  lookSpeed: 720
   stoppingDist: 1.25
   areaDetectorSize: 3
+  visionRange: 5
+  visionAngle: 120
+  wanderRadius: 5

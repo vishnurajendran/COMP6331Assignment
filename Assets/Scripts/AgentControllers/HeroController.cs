@@ -34,18 +34,18 @@ namespace AgentControllers
 
             //Seek the target
             move += SeekTarget(_target) * seekWeight;
-            //Stay Away from the Guard
+            
             move += StayAwayFromGuards() * (evadeGuardWeight * (_isTargetByGuard?_targettedMultipler:1));
             
             //Clamp the move direction
-            move = Vector3.ClampMagnitude(move, 1);
+            move = move.normalized;
             _agent.Move(move, _params.AgentSpeed, Time.deltaTime);
             
-            var lookDir = move * _params.AgentSpeed;
+            var lookDir = move;
             lookDir.y = 0;
-            _agent.LookAt(Vector3.Lerp(transform.forward, lookDir, Time.deltaTime * _params.AgentSpeed));
+            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
             
-            // move this to a state machine later.
+            // move this to a state machine later if needed.
             doHeroLogic();
         }
         
@@ -120,6 +120,11 @@ namespace AgentControllers
 
             Gizmos.color = status;
             Gizmos.DrawCube(transform.position + new Vector3(0,2.5f,0),Vector3.one * 0.5f);
+            if (_target != null)
+            {
+                Gizmos.color = Color.blue;
+                Gizmos.DrawLine(transform.position, _target.position);
+            }
         }
     }
 }

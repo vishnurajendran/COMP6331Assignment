@@ -29,10 +29,10 @@ namespace Agents
                 _controller.Move(Vector3.up * (_gravity * deltaTime));
         }
     
-        public void LookAt(Vector3 direction)
+        public void LookAt(Vector3 direction, float speed, float deltaTime)
         {
             Quaternion lookRot = Quaternion.LookRotation(direction, Vector3.up);
-            transform.rotation = lookRot;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, lookRot, speed* deltaTime);
         }
     }
 }
