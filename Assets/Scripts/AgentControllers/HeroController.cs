@@ -1,3 +1,4 @@
+using System.Collections;
 using Level;
 using UnityEngine;
 
@@ -10,11 +11,13 @@ namespace AgentControllers
 
         [SerializeField] private float seekWeight=1;
         [SerializeField] private float evadeGuardWeight=1;
+        [SerializeField] private float _targettedMultipler=10;
         
         private Transform _baseTrf;
         private Prisoner _prisoner;
         private bool _isTargetByGuard;
-        
+
+        private Coroutine _evadeDelayRoutine;
         
         protected override void Start()
         {
@@ -22,21 +25,21 @@ namespace AgentControllers
             SetTarget(LevelManager.Instance.GetNextTarget());
         }
         
-        private void FixedUpdate()
+        private void Update()
         {
             if(!_target)
                 return;
-
-            Vector3 move = Vector3.zero;
             
+            Vector3 move = Vector3.zero;
+
             //Seek the target
             move += SeekTarget(_target) * seekWeight;
             //Stay Away from the Guard
-            move += StayAwayFromGuards() * evadeGuardWeight;
+            move += StayAwayFromGuards() * (evadeGuardWeight * (_isTargetByGuard?_targettedMultipler:1));
             
             //Clamp the move direction
             move = Vector3.ClampMagnitude(move, 1);
-            _agent.Move(move, _params.AgentSpeed);
+            _agent.Move(move, _params.AgentSpeed, Time.deltaTime);
             
             var lookDir = move * _params.AgentSpeed;
             lookDir.y = 0;
@@ -45,7 +48,7 @@ namespace AgentControllers
             // move this to a state machine later.
             doHeroLogic();
         }
-
+        
         private Vector3 StayAwayFromGuards()
         {
             Vector3 move = Vector3.zero;
@@ -61,7 +64,7 @@ namespace AgentControllers
         
         private void doHeroLogic()
         {
-            if (ReachedTarget() && _target != _baseTrf)
+            if (!_isTargetByGuard && ReachedTarget() && _target != _baseTrf)
             {
                 Debug.Log("Reached");
                 _prisoner = _target.GetComponent<Prisoner>();
@@ -80,12 +83,43 @@ namespace AgentControllers
 
         public void MarkChasedByGuard(bool marked)
         {
-            _isTargetByGuard = marked;
+            if (marked)
+            {
+                if(_evadeDelayRoutine != null)
+                    StopCoroutine(_evadeDelayRoutine);
+                _isTargetByGuard = true;
+            }
+            else
+            {
+                if(_evadeDelayRoutine != null)
+                    StopCoroutine(_evadeDelayRoutine);
+                
+                _evadeDelayRoutine = StartCoroutine(DelayEvadeStop(1));
+            }
+        }
+
+        IEnumerator DelayEvadeStop(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            _isTargetByGuard = false;
         }
         
         public void SetBase(Transform baseTrf)
         {
             this._baseTrf = baseTrf;
+        }
+
+        protected override void OnDrawGizmos()
+        {
+            base.OnDrawGizmos();
+            Color status = Color.green;
+            if (_isTargetByGuard)
+            {
+                status = Color.red;
+            }
+
+            Gizmos.color = status;
+            Gizmos.DrawCube(transform.position + new Vector3(0,2.5f,0),Vector3.one * 0.5f);
         }
     }
 }

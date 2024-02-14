@@ -5,7 +5,7 @@ namespace AgentControllers
 {
     public class Prisoner : AgentController
     {
-        private void FixedUpdate()
+        private void Update()
         {
             if(!_target)
                 return;
@@ -14,7 +14,7 @@ namespace AgentControllers
             move += SeekTarget(_target);
 
             move = Vector3.ClampMagnitude(move, 1);
-            _agent.Move(move, _params.AgentSpeed);
+            _agent.Move(move, _params.AgentSpeed, Time.deltaTime);
             
             var lookDir = move * _params.AgentSpeed;
             lookDir.y = 0;

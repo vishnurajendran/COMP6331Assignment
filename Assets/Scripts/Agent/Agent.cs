@@ -16,17 +16,17 @@ namespace Agents
             _controller = GetComponent<CharacterController>();
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
             if(!_controller.isGrounded)
-                Move(Vector3.up, _gravity);
+                Move(Vector3.up, _gravity, Time.deltaTime);
         }
 
-        public void Move(Vector3 direction, float speed)
+        public void Move(Vector3 direction, float speed, float deltaTime)
         {
-            _controller.Move(direction * (speed * Time.deltaTime));
+            _controller.Move(direction * (speed * deltaTime));
             if(!_controller.isGrounded)
-                Move(Vector3.up, _gravity);
+                _controller.Move(Vector3.up * (_gravity * deltaTime));
         }
     
         public void LookAt(Vector3 direction)

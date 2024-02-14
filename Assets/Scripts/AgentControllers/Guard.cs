@@ -9,9 +9,9 @@ namespace AgentControllers
 {
     public class Guard : AgentController
     {
+        [SerializeField] private SphereCollider visionRangeCollider;
         private HeroController _currHeroTarget = null;
         private Prisoner _prisoner;
-
         private Vector3 wanderPos;
 
         protected override void Start()
@@ -19,9 +19,9 @@ namespace AgentControllers
             base.Start();
             var rb = this.gameObject.AddComponent<Rigidbody>();
             rb.isKinematic = true;
-            var col = this.gameObject.AddComponent<SphereCollider>();
-            col.radius = _params.VisionRange;
-            col.isTrigger = true;
+            
+            visionRangeCollider.radius = _params.VisionRange;
+            visionRangeCollider.isTrigger = true;
         }
 
         public void SetPrisioner(Prisoner prisoner)
@@ -44,10 +44,33 @@ namespace AgentControllers
             return newPos;
         }
 
-        private void FixedUpdate()
+        private void Update()
+        {
+            if (_currHeroTarget)
+            {
+                ChaseHero();
+            }
+            else
+            {
+                DoWander();
+            }
+        }
+
+        private void ChaseHero()
+        {
+            Debug.Log("Chasing Hero");
+            var dir = (_currHeroTarget.transform.position - transform.position).normalized;
+            _agent.Move(dir, _params.AgentSpeed, Time.deltaTime);
+
+            var lookDir = dir * _params.AgentSpeed;
+            lookDir.y = 0;
+            _agent.LookAt(Vector3.Lerp(transform.forward, lookDir, Time.deltaTime * _params.LookSpeed));
+        }
+        
+        private void DoWander()
         {
             var dir = (wanderPos - transform.position).normalized;
-            _agent.Move(dir, _params.AgentSpeed);
+            _agent.Move(dir, _params.AgentSpeed, Time.deltaTime);
 
             var lookDir = dir * _params.AgentSpeed;
             lookDir.y = 0;
@@ -78,6 +101,7 @@ namespace AgentControllers
             if (hero == null)
                 return;
             _currHeroTarget = hero;
+            hero.MarkChasedByGuard(true);
         }
 
         private void OnTriggerStay(Collider other)
@@ -93,6 +117,7 @@ namespace AgentControllers
                 return;
 
             _currHeroTarget = hero;
+            hero.MarkChasedByGuard(true);
         }
 
         private void OnTriggerExit(Collider other)
@@ -102,7 +127,10 @@ namespace AgentControllers
                 return;
 
             if (_currHeroTarget == hero)
+            { 
+                _currHeroTarget.MarkChasedByGuard(false);
                 _currHeroTarget = null;
+            }
         }
         
         protected override void OnDrawGizmos()
