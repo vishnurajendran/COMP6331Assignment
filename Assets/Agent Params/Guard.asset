@@ -18,5 +18,5 @@ MonoBehaviour:
   areaDetectorSize: 0
   visionRange: 7
   visionAngle: 120
-  wanderRadius: 5
+  wanderRadius: 10
   captureRadius: 2
