@@ -11,8 +11,8 @@ namespace AgentControllers
     [RequireComponent(typeof(Agent))]
     public abstract class AgentController : MonoBehaviour
     {
-        [SerializeField] 
-        protected AgentParams _params;
+        protected abstract AgentParams Params { get; }
+
         [SerializeField] 
         protected Transform _target;
         
@@ -31,18 +31,18 @@ namespace AgentControllers
         public bool ReachedTarget()
         {
             if (!_target) return false;
-            return Vector3.Distance(_target.position, transform.position) <= _params.StoppingDistance;
+            return Vector3.Distance(_target.position, transform.position) <= Params.StoppingDistance;
         }
         
         public bool ReachedCustomTarget(Transform target)
         {
             if (!target) return false;
-            return Vector3.Distance(target.position, transform.position) <= _params.StoppingDistance;
+            return Vector3.Distance(target.position, transform.position) <= Params.StoppingDistance;
         }
         
         public bool ReachedTargetPosition(Vector3 position)
         {
-            return Vector3.Distance(position, transform.position) <= _params.StoppingDistance;
+            return Vector3.Distance(position, transform.position) <= Params.StoppingDistance;
         }
         
         public Vector3 SeekTarget(Transform target)
@@ -56,18 +56,18 @@ namespace AgentControllers
         
         protected virtual void OnDrawGizmos()
         {
-            if (_params != null)
+            if (Params != null)
             {
-                Color detectorColor = Color.yellow;
+                Color detectorColor = Color.grey;
                 detectorColor.a = 0.25f;
                 Gizmos.color = detectorColor;
-                Gizmos.DrawSphere(transform.position, _params.AreaDetectorSize);
+                Gizmos.DrawSphere(transform.position, Params.AreaDetectorSize);
                 
                 #if UNITY_EDITOR
-                Color stopColor = Color.red;
-                stopColor.a = 0.25f;
+                Color stopColor = Color.green;
+                stopColor.a = 0.5f;
                 Handles.color = stopColor;
-                Handles.DrawSolidDisc(transform.position, Vector3.up, _params.StoppingDistance );
+                Handles.DrawSolidDisc(transform.position, Vector3.up, Params.StoppingDistance );
                 #endif
             }
         }

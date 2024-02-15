@@ -128,6 +128,7 @@ GameObject:
   - component: {fileID: 7239585597766781668}
   - component: {fileID: 3325126906621057140}
   - component: {fileID: 5675521229836564483}
+  - component: {fileID: 7798976415945702564}
   m_Layer: 7
   m_Name: Guard
   m_TagString: Untagged
@@ -150,6 +151,7 @@ Transform:
   m_Children:
   - {fileID: 5080578413310461309}
   - {fileID: 4438535872125176120}
+  - {fileID: 2461521375776247844}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &7239585597766781668
@@ -191,6 +193,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gravity: -9.81
+  avoidanceCorrectionThresh: 1
 --- !u!114 &5675521229836564483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -203,9 +206,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b5c777fa9e874f09ae06f3b2148bc84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _params: {fileID: 11400000, guid: eef6824a89b4d4acb9f659202a198173, type: 2}
   _target: {fileID: 0}
   visionRangeCollider: {fileID: 6135790713627387498}
+  _params: {fileID: 11400000, guid: 087f1969e6dbf3443854dba872c442e9, type: 2}
+--- !u!114 &7798976415945702564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475971015646452459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f643f104b21234e4fa0413cc930143cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _obstacleAvoidanceMask:
+    serializedVersion: 2
+    m_Bits: 960
+  _obsAvoidRayOrigin: {fileID: 6379079521520151779}
+  _obsDetectionAnglePerSide: 90
+  _rayCount: 100
+  _maxObsDetectDist: 1.5
+  _correctionThreshold: 100
 --- !u!1 &941023968469608246
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,6 +312,37 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1505331873028492361
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6379079521520151779}
+  m_Layer: 7
+  m_Name: Avoidance Ray Origin
+  m_TagString: Untagged
+  m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6379079521520151779
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505331873028492361}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0.632}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2461521375776247844}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2717771089949357266
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,6 +373,38 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7983804965523313753}
+  m_Father: {fileID: 1820815646930074060}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4483312694776363477
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2461521375776247844}
+  m_Layer: 7
+  m_Name: Locators
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2461521375776247844
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4483312694776363477}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6379079521520151779}
   m_Father: {fileID: 1820815646930074060}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6297369903396745546
@@ -372,5 +458,5 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 0.00001
   m_Center: {x: 0, y: 0, z: 0}

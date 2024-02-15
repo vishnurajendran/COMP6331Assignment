@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -10,7 +11,15 @@ namespace AgentControllers
     public class Guard : AgentController
     {
         [SerializeField] private SphereCollider visionRangeCollider;
+        [SerializeField] private GuardAgentParams _params;
+
+        protected override AgentParams Params => _params;
+
+        // we will use this to reference any hero calls.
         private HeroController _currHeroTarget = null;
+        
+        //faster to check on transform, than use a get-component.
+        private Transform _currHeroTargetTransform = null;
         private Prisoner _prisoner;
         private Vector3 wanderPos;
 
@@ -32,9 +41,6 @@ namespace AgentControllers
 
         private Vector3 GetNextWanderPosition()
         {
-            if (_prisoner == null && wanderPos.Equals(Vector3.zero))
-                wanderPos = GetNextWanderPosition();
-            
             Vector3 basePos = transform.position;
             if (_prisoner)
                 basePos = _prisoner.transform.position;
@@ -46,6 +52,9 @@ namespace AgentControllers
 
         private void Update()
         {
+            if (_prisoner == null && wanderPos.Equals(Vector3.zero))
+                wanderPos = GetNextWanderPosition();
+            
             if (_currHeroTarget)
             {
                 ChaseHero();
@@ -60,22 +69,14 @@ namespace AgentControllers
         {
             Debug.Log("Chasing Hero");
             var dir = (_currHeroTarget.transform.position - transform.position).normalized;
-            _agent.Move(dir, _params.AgentSpeed, Time.deltaTime);
-            
-            var lookDir = dir;
-            lookDir.y = 0;
-            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
+            _agent.Move(dir, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
         }
         
         private void DoWander()
         {
             var dir = (wanderPos - transform.position).normalized;
-            _agent.Move(dir, _params.AgentSpeed, Time.deltaTime);
+            _agent.Move(dir, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
             
-            var lookDir = dir;
-            lookDir.y = 0;
-            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
-
             if (ReachedTargetPosition(wanderPos))
             {
                 wanderPos = GetNextWanderPosition();
@@ -89,37 +90,53 @@ namespace AgentControllers
             return (angle >= -_params.VisionAngle / 2) && (angle <= _params.VisionAngle / 2);
         }
 
+        private bool IsInCaptureRange(Transform target)
+        {
+            return Vector3.Distance(transform.position, target.position) <= _params.CaptureRadius;
+        }
+        
         private void OnTriggerEnter(Collider other)
         {
-            if (_currHeroTarget != null)
-                return;
-
-            var hero = other.GetComponent<HeroController>();
-            if (hero == null)
-                return;
-            
-            if (!IsVisible(other.transform))
-                return;
-            
-            
-            _currHeroTarget = hero;
-            hero.MarkChasedByGuard(true);
+            TryCheckIfCanTarget(other);
         }
 
-        private void OnTriggerStay(Collider other)
+        private void TryCheckIfCanTarget(Collider collider)
         {
             if (_currHeroTarget != null)
                 return;
 
-            var hero = other.GetComponent<HeroController>();
+            var hero = collider.GetComponent<HeroController>();
             if (hero == null)
                 return;
             
-            if (!IsVisible(other.transform))
+            if (!IsVisible(collider.transform))
                 return;
             
+            
             _currHeroTarget = hero;
+            _currHeroTargetTransform = hero.transform;
+            
             hero.MarkChasedByGuard(true);
+            if(IsInCaptureRange(hero.transform))
+            {
+                Destroy(hero.gameObject);
+            }
+        }
+        
+        private void OnTriggerStay(Collider other)
+        {
+            if (_currHeroTarget == null)
+                TryCheckIfCanTarget(other);
+            else
+            {
+                if (_currHeroTargetTransform != other.transform)
+                    return;
+                
+                if(IsInCaptureRange(_currHeroTargetTransform.transform))
+                {
+                    Destroy(_currHeroTargetTransform.gameObject);
+                }
+            }
         }
 
         private void OnTriggerExit(Collider other)
@@ -132,6 +149,7 @@ namespace AgentControllers
             { 
                 _currHeroTarget.MarkChasedByGuard(false);
                 _currHeroTarget = null;
+                _currHeroTargetTransform = null;
             }
         }
         
@@ -142,13 +160,18 @@ namespace AgentControllers
             {
 
 #if UNITY_EDITOR
-                Color vision = Color.cyan;
+                Color vision = new Color(0.55f, 0.55f, 0, 1);
                 vision.a = 0.5f;
                 Handles.color = vision;
                 var pos = transform.position;
                 var forward = transform.forward;
                 Handles.DrawSolidArc(pos, Vector3.up, forward, _params.VisionAngle / 2, _params.VisionRange);
                 Handles.DrawSolidArc(pos, Vector3.up, forward, -_params.VisionAngle / 2, _params.VisionRange);
+
+                Color capture = Color.magenta;
+                capture.a = 0.35f;
+                Handles.color = capture;
+                Handles.DrawSolidDisc(transform.position, Vector3.up, _params.CaptureRadius);
 #endif
 
                 if (_currHeroTarget)
@@ -159,7 +182,10 @@ namespace AgentControllers
 
                 if (wanderPos != Vector3.zero)
                 {
-                    Gizmos.color = Color.magenta;
+                    var destColor = Color.magenta;
+                    destColor.a = 0.25f;
+                    Gizmos.color = destColor;
+                    
                     Gizmos.DrawLine(transform.position, wanderPos);
                     Gizmos.DrawSphere(wanderPos, 0.35f);
                 }

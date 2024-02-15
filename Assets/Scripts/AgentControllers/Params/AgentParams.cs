@@ -18,22 +18,10 @@ namespace AgentControllers
         [SerializeField, Range(0, 10)] 
         private float areaDetectorSize = 2;
         
-        [SerializeField, Range(0, 10)] 
-        private float visionRange = 5;
-        
-        [SerializeField, Range(0, 360)] 
-        private float visionAngle = 120;
-        
-        [SerializeField]
-        private float wanderRadius = 5;
-        
         public float AgentSpeed => speed;
         public float LookSpeed => lookSpeed;
         public float StoppingDistance => stoppingDist;
         public float AreaDetectorSize => areaDetectorSize;
-        public float VisionRange => visionRange;
-        public float VisionAngle => visionAngle;
-        public float WanderRadius => wanderRadius;
-        
+
     }
 }

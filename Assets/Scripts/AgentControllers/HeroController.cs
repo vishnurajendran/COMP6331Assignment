@@ -7,6 +7,9 @@ namespace AgentControllers
     public class HeroController : AgentController
     {
         [SerializeField] 
+        private AgentParams _params;
+        
+        [SerializeField] 
         private LayerMask _guardMask;
 
         [SerializeField] private float seekWeight=1;
@@ -18,7 +21,9 @@ namespace AgentControllers
         private bool _isTargetByGuard;
 
         private Coroutine _evadeDelayRoutine;
-        
+
+        protected override AgentParams Params => _params;
+
         protected override void Start()
         {
             base.Start();
@@ -34,17 +39,11 @@ namespace AgentControllers
 
             //Seek the target
             move += SeekTarget(_target) * seekWeight;
-            
             move += StayAwayFromGuards() * (evadeGuardWeight * (_isTargetByGuard?_targettedMultipler:1));
             
             //Clamp the move direction
-            move = move.normalized;
-            _agent.Move(move, _params.AgentSpeed, Time.deltaTime);
-            
-            var lookDir = move;
-            lookDir.y = 0;
-            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
-            
+            move = Vector3.ClampMagnitude(move, 1);
+            _agent.Move(move, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
             // move this to a state machine later if needed.
             doHeroLogic();
         }

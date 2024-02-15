@@ -5,6 +5,10 @@ namespace AgentControllers
 {
     public class Prisoner : AgentController
     {
+        [SerializeField] private AgentParams _params;
+        
+        protected override AgentParams Params => _params;
+        
         private void Update()
         {
             if(!_target)
@@ -13,10 +17,8 @@ namespace AgentControllers
             Vector3 move = Vector3.zero;
             move += SeekTarget(_target);
             
-            _agent.Move(move.normalized, _params.AgentSpeed, Time.deltaTime);
-            var lookDir = move;
-            lookDir.y = 0;
-            _agent.LookAt(lookDir, _params.LookSpeed, Time.deltaTime);
+            _agent.Move(move.normalized, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
         }
+
     }
 }
