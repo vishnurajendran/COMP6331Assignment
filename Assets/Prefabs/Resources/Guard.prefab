@@ -226,7 +226,7 @@ MonoBehaviour:
     m_Bits: 960
   _obsAvoidRayOrigin: {fileID: 6379079521520151779}
   _obsDetectionAnglePerSide: 90
-  _rayCount: 100
+  _rayResolution: 50
   _maxObsDetectDist: 1.5
   _correctionThreshold: 100
 --- !u!1 &941023968469608246
@@ -337,7 +337,7 @@ Transform:
   m_GameObject: {fileID: 1505331873028492361}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0.632}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

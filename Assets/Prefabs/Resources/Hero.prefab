@@ -181,7 +181,7 @@ GameObject:
   - component: {fileID: 8710168881753738690}
   m_Layer: 0
   m_Name: Hero
-  m_TagString: Untagged
+  m_TagString: Hero
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -241,6 +241,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gravity: -9.81
+  avoidanceCorrectionThresh: 1
 --- !u!114 &8710168881753738690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,13 +254,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb1a18dbdfc94d979707c98a09c964f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _params: {fileID: 11400000, guid: 8d0ce5c5b91be4f04920cf0e5ae051dd, type: 2}
   _target: {fileID: 0}
+  _params: {fileID: 11400000, guid: 8d0ce5c5b91be4f04920cf0e5ae051dd, type: 2}
   _guardMask:
     serializedVersion: 2
     m_Bits: 128
-  seekWeight: 5
+  seekWeight: 2
   evadeGuardWeight: 1.5
+  _targettedMultipler: 10
 --- !u!1 &7835253720608458195
 GameObject:
   m_ObjectHideFlags: 0

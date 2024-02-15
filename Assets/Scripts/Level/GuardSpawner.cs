@@ -37,8 +37,11 @@ namespace Level
             }
 
             if (!prisoner)
+            {
+                Destroy(this.gameObject);
                 return;
-            
+            }
+
             guard.SetPrisioner(prisoner);
             Destroy(this.gameObject);
         }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -8,9 +9,6 @@ namespace Agents
 {
     public class AgentObstacleAvoidancePlugin : MonoBehaviour
     {
-        [SerializeField]
-        private bool enableCollisionAvoidance = true;
-        
         [SerializeField] private LayerMask _obstacleAvoidanceMask;
         [SerializeField] private Transform _obsAvoidRayOrigin;
         [SerializeField] private float _obsDetectionAnglePerSide = 90;
@@ -18,15 +16,20 @@ namespace Agents
         [SerializeField] private float _maxObsDetectDist = 3f;
         [SerializeField] private float _correctionThreshold = 10f;
 
+        
         private Vector3 _correction;
         public Vector3 Correction => _correction;
-
-        private void FixedUpdate()   
+        
+        private void FixedUpdate()
         {
             _correction = Vector3.zero;
-            if (!enableCollisionAvoidance)
-                return;
-            
+            RaycastBasedObstacleAvoidance();
+            _correction = _correction * _correctionThreshold;
+            _correction = Vector3.ClampMagnitude(_correction,1);
+        }
+        
+        private void RaycastBasedObstacleAvoidance()
+        {
             for (int i = 0; i < _rayResolution; i++)
             {
                 var rot = this.transform.rotation;
@@ -45,11 +48,8 @@ namespace Agents
                     _correction += dir * ((1.0f / _rayResolution) * Time.deltaTime);
                 }
             }
-
-            _correction *= _correctionThreshold;
-            _correction = Vector3.ClampMagnitude(_correction, 1);
         }
-
+        
         private void OnDrawGizmos()
         {
 #if UNITY_EDITOR

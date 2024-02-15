@@ -10,6 +10,8 @@ namespace AgentControllers
 {
     public class Guard : AgentController
     {
+        private const string HeroTag = "Hero";
+        
         [SerializeField] private SphereCollider visionRangeCollider;
         [SerializeField] private GuardAgentParams _params;
 
@@ -105,6 +107,9 @@ namespace AgentControllers
             if (_currHeroTarget != null)
                 return;
 
+            if (!collider.CompareTag(HeroTag))
+                return;
+            
             var hero = collider.GetComponent<HeroController>();
             if (hero == null)
                 return;
@@ -134,6 +139,7 @@ namespace AgentControllers
                 
                 if(IsInCaptureRange(_currHeroTargetTransform.transform))
                 {
+                    Debug.Log("Captured!!");
                     Destroy(_currHeroTargetTransform.gameObject);
                 }
             }
@@ -141,6 +147,9 @@ namespace AgentControllers
 
         private void OnTriggerExit(Collider other)
         {
+            if(!other.CompareTag(HeroTag))
+                return;
+            
             var hero = other.GetComponent<HeroController>();
             if (hero == null)
                 return;
