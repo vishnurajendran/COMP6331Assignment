@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c98f95527ccfc2488f2faebff97e994, type: 3}
   m_Name: Guard
   m_EditorClassIdentifier: 
-  speed: 3
+  speed: 4
   lookSpeed: 720
   stoppingDist: 1.25
   areaDetectorSize: 0
   visionRange: 7
+  chaseRange: 5
   visionAngle: 120
   wanderRadius: 10
   captureRadius: 2

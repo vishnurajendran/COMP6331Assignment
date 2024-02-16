@@ -26,13 +26,16 @@ namespace Agents
 
         public void Move(Vector3 direction, float moveSpeed,float lookSpeed, float deltaTime)
         {
-            var move = Vector3.zero;
+            var moveDir = Vector3.zero;
             var obstacleAvoidance = AvoidObstacles() * avoidanceCorrectionThresh;
-            move += obstacleAvoidance;
-            move += direction;
+            moveDir += obstacleAvoidance;
+            moveDir += direction;
             
-            move = move.normalized;
-            _controller.Move(move * (moveSpeed * deltaTime));
+            moveDir = moveDir.normalized;
+            var move = moveDir * (moveSpeed * deltaTime);
+            move = Vector3.ClampMagnitude(move, moveSpeed);
+            _controller.Move(move);
+            
             if(!_controller.isGrounded)
                 _controller.Move(Vector3.up * (_gravity * deltaTime));
 

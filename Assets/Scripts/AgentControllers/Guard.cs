@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -15,6 +17,8 @@ namespace AgentControllers
         [SerializeField] private SphereCollider visionRangeCollider;
         [SerializeField] private GuardAgentParams _params;
 
+        private HashSet<Collider> _collidersInVicinity;
+
         protected override AgentParams Params => _params;
 
         // we will use this to reference any hero calls.
@@ -25,6 +29,8 @@ namespace AgentControllers
         private Prisoner _prisoner;
         private Vector3 wanderPos;
 
+        private Coroutine delayedStop;
+        
         protected override void Start()
         {
             base.Start();
@@ -33,8 +39,44 @@ namespace AgentControllers
             
             visionRangeCollider.radius = _params.VisionRange;
             visionRangeCollider.isTrigger = true;
+            _collidersInVicinity = new HashSet<Collider>();
+            StartCoroutine(CheckForVisibility());
         }
 
+        private IEnumerator CheckForVisibility()
+        {
+            while (true)
+            {
+                Debug.Log("COL Size: " + _collidersInVicinity.Count);
+                yield return new WaitForFixedUpdate();
+                if (_collidersInVicinity.Count <= 0)
+                    continue;
+
+                // copy our data to avoid any modifications mid check
+                var copy = new Collider[_collidersInVicinity.Count];
+                _collidersInVicinity.CopyTo(copy);
+                
+                Debug.Log("COL LEN: " + copy.Length);
+                foreach (var other in copy)
+                {
+                    if (!_currHeroTarget)
+                    {
+                        TryCheckIfCanTarget(other);
+                    }
+                    
+                    if (_currHeroTargetTransform != other.transform)
+                        continue;
+                        
+                    if (IsInCaptureRange(_currHeroTargetTransform))
+                    {
+                        Debug.Log("Killing Agent");
+                        _collidersInVicinity.Remove(other);
+                        Destroy(_currHeroTargetTransform.gameObject);
+                    }
+                }
+            }
+        }
+        
         public void SetPrisioner(Prisoner prisoner)
         {
             _prisoner = prisoner;
@@ -43,11 +85,14 @@ namespace AgentControllers
 
         private Vector3 GetNextWanderPosition()
         {
-            Vector3 basePos = transform.position;
+            var basePos = transform.position;
             if (_prisoner)
                 basePos = _prisoner.transform.position;
-
-            Vector3 delta = Random.insideUnitCircle * _params.WanderRadius;
+            
+            var randAngle = Random.Range(0, Mathf.PI * 2f);
+            var dist = Random.Range(6f, 10f);
+            var delta = new Vector2(dist * Mathf.Cos(randAngle), dist * Mathf.Sin(randAngle));
+            
             var newPos = new Vector3(basePos.x + delta.x, basePos.y, basePos.z + delta.y);
             return newPos;
         }
@@ -69,7 +114,6 @@ namespace AgentControllers
 
         private void ChaseHero()
         {
-            Debug.Log("Chasing Hero");
             var dir = (_currHeroTarget.transform.position - transform.position).normalized;
             _agent.Move(dir, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
         }
@@ -94,7 +138,8 @@ namespace AgentControllers
 
         private bool IsInCaptureRange(Transform target)
         {
-            return Vector3.Distance(transform.position, target.position) <= _params.CaptureRadius;
+            var dist = Vector3.Distance(transform.position, target.position);
+            return dist <= _params.CaptureRadius;
         }
         
         private void OnTriggerEnter(Collider other)
@@ -104,6 +149,7 @@ namespace AgentControllers
 
         private void TryCheckIfCanTarget(Collider collider)
         {
+            
             if (_currHeroTarget != null)
                 return;
 
@@ -113,35 +159,23 @@ namespace AgentControllers
             var hero = collider.GetComponent<HeroController>();
             if (hero == null)
                 return;
-            
+
+            _collidersInVicinity.Add(collider);
             if (!IsVisible(collider.transform))
+            {
                 return;
-            
+            }
             
             _currHeroTarget = hero;
             _currHeroTargetTransform = hero.transform;
             
-            hero.MarkChasedByGuard(true);
+            if(delayedStop != null)
+                StopCoroutine(delayedStop);
+            
+            hero.MarkChasedByGuard(true, this);
             if(IsInCaptureRange(hero.transform))
             {
                 Destroy(hero.gameObject);
-            }
-        }
-        
-        private void OnTriggerStay(Collider other)
-        {
-            if (_currHeroTarget == null)
-                TryCheckIfCanTarget(other);
-            else
-            {
-                if (_currHeroTargetTransform != other.transform)
-                    return;
-                
-                if(IsInCaptureRange(_currHeroTargetTransform.transform))
-                {
-                    Debug.Log("Captured!!");
-                    Destroy(_currHeroTargetTransform.gameObject);
-                }
             }
         }
 
@@ -154,12 +188,22 @@ namespace AgentControllers
             if (hero == null)
                 return;
 
+            _collidersInVicinity.Remove(other);
             if (_currHeroTarget == hero)
             { 
-                _currHeroTarget.MarkChasedByGuard(false);
-                _currHeroTarget = null;
-                _currHeroTargetTransform = null;
+               if(delayedStop != null)
+                   StopCoroutine(delayedStop);
+
+               delayedStop = StartCoroutine(DelayedChaseStop(1f));
             }
+        }
+
+        IEnumerator DelayedChaseStop(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            _currHeroTarget.MarkChasedByGuard(false, this);
+            _currHeroTarget = null;
+            _currHeroTargetTransform = null;
         }
         
         protected override void OnDrawGizmos()

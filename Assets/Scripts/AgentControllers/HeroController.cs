@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
 using Level;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace AgentControllers
 {
@@ -14,10 +16,15 @@ namespace AgentControllers
 
         [SerializeField] private float seekWeight=1;
         [SerializeField] private float evadeGuardWeight=1;
-        [SerializeField] private float _targettedMultipler=10;
-        
+        [SerializeField] private float _luringWeight=10;
+
+        private List<Guard> _guardsTargettingMe;
+
         private Transform _baseTrf;
         private Prisoner _prisoner;
+
+        private Transform _prisonerToGoTo;
+        
         private bool _isTargetByGuard;
 
         private Coroutine _evadeDelayRoutine;
@@ -27,7 +34,9 @@ namespace AgentControllers
         protected override void Start()
         {
             base.Start();
-            SetTarget(LevelManager.Instance.GetNextTarget());
+            _guardsTargettingMe = new List<Guard>();
+            _prisonerToGoTo = LevelManager.Instance.GetNextTarget();
+            SetTarget(_prisonerToGoTo);
         }
         
         private void Update()
@@ -39,7 +48,8 @@ namespace AgentControllers
 
             //Seek the target
             move += SeekTarget(_target) * seekWeight;
-            move += StayAwayFromGuards() * (evadeGuardWeight * (_isTargetByGuard?_targettedMultipler:1));
+            move += StayAwayFromGuards() * evadeGuardWeight;
+            move += LureGuardToBase();
             
             //Clamp the move direction
             move = Vector3.ClampMagnitude(move, 1);
@@ -61,6 +71,17 @@ namespace AgentControllers
             return move;
         }
         
+        private Vector3 LureGuardToBase()
+        {
+            if (_isTargetByGuard)
+                return Vector3.zero;
+            
+            // make myself be within the guard's vision cone and
+            //lure him to base.
+
+            return Vector3.zero;
+        }
+        
         private void doHeroLogic()
         {
             if (!_isTargetByGuard && ReachedTarget() && _target != _baseTrf)
@@ -80,20 +101,25 @@ namespace AgentControllers
             }
         }
 
-        public void MarkChasedByGuard(bool marked)
+        public void MarkChasedByGuard(bool marked, Guard guardRef)
         {
             if (marked)
             {
                 if(_evadeDelayRoutine != null)
                     StopCoroutine(_evadeDelayRoutine);
+                _guardsTargettingMe.Add(guardRef);
                 _isTargetByGuard = true;
+                SetTarget(_baseTrf);
             }
             else
             {
-                if(_evadeDelayRoutine != null)
-                    StopCoroutine(_evadeDelayRoutine);
-                
-                _evadeDelayRoutine = StartCoroutine(DelayEvadeStop(1));
+                _guardsTargettingMe.Remove(guardRef);
+                if (_guardsTargettingMe.Count <= 0)
+                {
+                    if(_evadeDelayRoutine != null)
+                        StopCoroutine(_evadeDelayRoutine);
+                    _evadeDelayRoutine = StartCoroutine(DelayEvadeStop(1));
+                }
             }
         }
 
@@ -101,6 +127,8 @@ namespace AgentControllers
         {
             yield return new WaitForSeconds(delay);
             _isTargetByGuard = false;
+            SetTarget(_prisonerToGoTo);
+               
         }
         
         public void SetBase(Transform baseTrf)
