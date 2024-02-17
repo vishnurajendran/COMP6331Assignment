@@ -1,6 +1,7 @@
 using System;
 using AgentControllers;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -52,7 +53,7 @@ namespace Level
             Gizmos.DrawSphere(transform.position, 0.25f);
             #if UNITY_EDITOR
             var color = Color.black;
-            color.a = 0.25f;
+            color.a = 0.05f;
             Handles.color = color;
             Handles.DrawSolidDisc(transform.position, Vector3.up, prisonerDetectionRadius);
             #endif

@@ -129,6 +129,7 @@ GameObject:
   - component: {fileID: 3325126906621057140}
   - component: {fileID: 5675521229836564483}
   - component: {fileID: 7798976415945702564}
+  - component: {fileID: 8840948431007717094}
   m_Layer: 7
   m_Name: Guard
   m_TagString: Untagged
@@ -227,8 +228,21 @@ MonoBehaviour:
   _obsAvoidRayOrigin: {fileID: 6379079521520151779}
   _obsDetectionAnglePerSide: 90
   _rayResolution: 50
-  _maxObsDetectDist: 1.5
+  _maxObsDetectDist: 3
   _correctionThreshold: 100
+  smartCheck: 1
+--- !u!114 &8840948431007717094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475971015646452459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9398d7407a7d1d843abc6f1cce04f263, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &941023968469608246
 GameObject:
   m_ObjectHideFlags: 0

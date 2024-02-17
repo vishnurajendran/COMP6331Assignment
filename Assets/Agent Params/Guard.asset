@@ -19,5 +19,6 @@ MonoBehaviour:
   visionRange: 7
   chaseRange: 5
   visionAngle: 120
-  wanderRadius: 10
+  wanderMinRadius: 10
+  wanderMaxRadius: 17
   captureRadius: 2

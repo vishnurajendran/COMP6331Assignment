@@ -43,8 +43,11 @@ namespace Level
         private void OnTriggerEnter(Collider other)
         {
             var guard = other.GetComponent<Guard>();
-            if(guard)
+            if (guard)
+            {
+                UIManager.Instance?.IncrementScore();
                 Destroy(guard.gameObject);
+            }
         }
     }
     

@@ -54,8 +54,9 @@ namespace Agents
         
         private void LookAt(Vector3 direction, float speed, float deltaTime)
         {
-            if(direction.Equals(Vector3.zero))
+            if(Mathf.Approximately(direction.magnitude,0))
                 return;
+            
             Quaternion lookRot = Quaternion.LookRotation(direction, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, lookRot, speed* deltaTime);
         }

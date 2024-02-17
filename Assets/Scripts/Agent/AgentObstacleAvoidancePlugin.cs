@@ -15,7 +15,9 @@ namespace Agents
         [SerializeField] private int _rayResolution=50;
         [SerializeField] private float _maxObsDetectDist = 3f;
         [SerializeField] private float _correctionThreshold = 10f;
-
+        [SerializeField, Tooltip("Will try to estimate future position to avoid")] 
+        private bool smartCheck = true;
+        
         
         private Vector3 _correction;
         public Vector3 Correction => _correction;
@@ -40,7 +42,20 @@ namespace Agents
                 if (Physics.Raycast(ray, out hit, _maxObsDetectDist, _obstacleAvoidanceMask))
                 {
                     Debug.DrawLine(ray.origin, hit.point, Color.red);
-                    _correction -= dir * ((1.0f / _rayResolution) * Time.deltaTime);
+                    if (!hit.collider && smartCheck)
+                    {
+                        var kinInfo = hit.collider.GetComponent<KinematicInfo>();
+                        if (kinInfo)
+                        {
+                            var nextPos = kinInfo.GetEstimatedPosition(Time.fixedDeltaTime);
+                            var correctedDir = (nextPos - transform.position).normalized;
+                            _correction -= correctedDir * ((1.0f / _rayResolution) * Time.deltaTime);
+                        }
+                        else
+                            _correction -= dir * ((1.0f / _rayResolution) * Time.deltaTime);
+                    }
+                    else
+                        _correction -= dir * ((1.0f / _rayResolution) * Time.deltaTime);
                 }
                 else
                 {

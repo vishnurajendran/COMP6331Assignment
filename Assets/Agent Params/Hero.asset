@@ -16,6 +16,3 @@ MonoBehaviour:
   lookSpeed: 720
   stoppingDist: 1.25
   areaDetectorSize: 8
-  visionRange: 5
-  visionAngle: 120
-  wanderRadius: 5

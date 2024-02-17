@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Level;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -30,10 +32,13 @@ namespace AgentControllers
         private Vector3 wanderPos;
 
         private Coroutine delayedStop;
+
+        public float VisionRange => _params.VisionRange;
         
         protected override void Start()
         {
             base.Start();
+            LevelManager.Instance.RegisterGuard(transform);
             var rb = this.gameObject.AddComponent<Rigidbody>();
             rb.isKinematic = true;
             
@@ -47,7 +52,6 @@ namespace AgentControllers
         {
             while (true)
             {
-                Debug.Log("COL Size: " + _collidersInVicinity.Count);
                 yield return new WaitForFixedUpdate();
                 if (_collidersInVicinity.Count <= 0)
                     continue;
@@ -56,9 +60,11 @@ namespace AgentControllers
                 var copy = new Collider[_collidersInVicinity.Count];
                 _collidersInVicinity.CopyTo(copy);
                 
-                Debug.Log("COL LEN: " + copy.Length);
                 foreach (var other in copy)
                 {
+                    if(other == null)
+                        continue;
+                    
                     if (!_currHeroTarget)
                     {
                         TryCheckIfCanTarget(other);
@@ -69,7 +75,6 @@ namespace AgentControllers
                         
                     if (IsInCaptureRange(_currHeroTargetTransform))
                     {
-                        Debug.Log("Killing Agent");
                         _collidersInVicinity.Remove(other);
                         Destroy(_currHeroTargetTransform.gameObject);
                     }
@@ -90,7 +95,7 @@ namespace AgentControllers
                 basePos = _prisoner.transform.position;
             
             var randAngle = Random.Range(0, Mathf.PI * 2f);
-            var dist = Random.Range(6f, 10f);
+            var dist = Random.Range(_params.WanderMinRadius, _params.WanderMaxRadius);
             var delta = new Vector2(dist * Mathf.Cos(randAngle), dist * Mathf.Sin(randAngle));
             
             var newPos = new Vector3(basePos.x + delta.x, basePos.y, basePos.z + delta.y);
@@ -153,6 +158,9 @@ namespace AgentControllers
             if (_currHeroTarget != null)
                 return;
 
+            if(collider == null)
+                return;
+            
             if (!collider.CompareTag(HeroTag))
                 return;
             
@@ -243,6 +251,15 @@ namespace AgentControllers
                     Gizmos.DrawSphere(wanderPos, 0.35f);
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            if(_currHeroTarget)
+                _currHeroTarget.MarkChasedByGuard(false, this);
+            
+            if(LevelManager.Instance != null)
+                LevelManager.Instance.DeRegisterGuard(transform);
         }
     }
 }

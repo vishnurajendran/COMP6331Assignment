@@ -98,7 +98,7 @@ GameObject:
   - component: {fileID: 6472345028811701588}
   m_Layer: 6
   m_Name: Prisoner
-  m_TagString: Untagged
+  m_TagString: Prisoner
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -170,6 +170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gravity: -9.81
+  avoidanceCorrectionThresh: 1
 --- !u!114 &6472345028811701588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,8 +183,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f7a23ba27ef491d9ac0d03926c8a6b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _params: {fileID: 11400000, guid: 60f0348fbb5c146faa7107edb12a7f07, type: 2}
   _target: {fileID: 0}
+  _params: {fileID: 11400000, guid: 60f0348fbb5c146faa7107edb12a7f07, type: 2}
 --- !u!1 &7633675611864563867
 GameObject:
   m_ObjectHideFlags: 0

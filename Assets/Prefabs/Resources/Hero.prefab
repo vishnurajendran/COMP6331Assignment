@@ -259,9 +259,11 @@ MonoBehaviour:
   _guardMask:
     serializedVersion: 2
     m_Bits: 128
-  seekWeight: 2
-  evadeGuardWeight: 1.5
-  _targettedMultipler: 10
+  _seekWeight: 2
+  _evadeGuardWeight: 1.5
+  _aggressiveModeWeight: 3
+  _strategySwitchThresh: 5
+  _maxLureSpeedReductionModifier: 1
 --- !u!1 &7835253720608458195
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,7 +15,9 @@ namespace AgentControllers
         private float visionAngle = 120;
         
         [SerializeField]
-        private float wanderRadius = 5;
+        private float wanderMinRadius = 5;
+        [SerializeField]
+        private float wanderMaxRadius = 5;
         
         [SerializeField]
         private float captureRadius = 2;
@@ -23,7 +25,8 @@ namespace AgentControllers
         public float VisionRange => visionRange;
         public float ChaseRange => captureRadius;
         public float VisionAngle => visionAngle;
-        public float WanderRadius => wanderRadius;
+        public float WanderMaxRadius => wanderMaxRadius;
+        public float WanderMinRadius => wanderMinRadius;
         public float CaptureRadius => captureRadius;
 
         private void OnValidate()

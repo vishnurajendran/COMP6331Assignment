@@ -1,106 +1,116 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using AgentControllers.Strategies;
 using Level;
+
 using UnityEngine;
 using UnityEngine.Serialization;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace AgentControllers
 {
     public class HeroController : AgentController
     {
-        [SerializeField] 
-        private AgentParams _params;
+        protected override AgentParams Params => _params;
+        [SerializeField] private AgentParams _params;
+        [SerializeField] private LayerMask _guardMask;
+        [FormerlySerializedAs("seekWeight")] [SerializeField] private float _seekWeight=1;
+        [FormerlySerializedAs("evadeGuardWeight")] [SerializeField] private float _evadeGuardWeight=10;
+        [SerializeField] private float _aggressiveModeWeight = 3;
         
-        [SerializeField] 
-        private LayerMask _guardMask;
+        [SerializeField, Tooltip("Threshold of failed attempts before strategy switches to aggressive")] 
+        private int _strategySwitchThresh = 5;
+        
+        [SerializeField, Tooltip("Aggressive Mode, Lure speed modifier thresh")] 
+        private int _maxLureSpeedReductionModifier = 1;
 
-        [SerializeField] private float seekWeight=1;
-        [SerializeField] private float evadeGuardWeight=1;
-        [SerializeField] private float _luringWeight=10;
-
+        [SerializeField, Tooltip("Min Safe Distance from a Guard")] 
+        private int _minSafeDistFromGuard = 4;
+        
+        private float _modifier;
+        private int totalMarked=0;
+        private int totalEscaped = 0;
         private List<Guard> _guardsTargettingMe;
-
         private Transform _baseTrf;
         private Prisoner _prisoner;
-
         private Transform _prisonerToGoTo;
-        
         private bool _isTargetByGuard;
-
         private Coroutine _evadeDelayRoutine;
+        private IHeroStrategy _strategy;
 
-        protected override AgentParams Params => _params;
+        private float MoveSpeed => _params.AgentSpeed + _modifier;
+        
+        public float SeekWeight => _seekWeight;
+        public float EvadeGuardWeight => _evadeGuardWeight;
+        public float AggressiveWeight => _aggressiveModeWeight;
+        public float MinSafeDistFromGuard => _minSafeDistFromGuard;
+        public bool IsTargetted => _isTargetByGuard;
+        public Transform Target => _target;
+        public Prisoner Prisoner => _prisoner;
+        public Transform Base => _baseTrf;
 
+        public float MaxLureSpeedReductionModifier => _maxLureSpeedReductionModifier;
+        
+        public void SetSpeedModifier(float modifierVal)
+        {
+            _modifier = modifierVal;
+        }
+        
         protected override void Start()
         {
             base.Start();
+            LevelManager.Instance?.AddHero();
+            SwitchStrategy(Strategy.Default);
             _guardsTargettingMe = new List<Guard>();
             _prisonerToGoTo = LevelManager.Instance.GetNextTarget();
             SetTarget(_prisonerToGoTo);
         }
+
+        public void SwitchStrategy(Strategy strategy)
+        {
+            if(_strategy != null && _strategy.CurrentStrategy == strategy)
+                return;
+            
+            _strategy = HeroStratergies.Get(strategy);
+            _strategy.Initialise(this);
+            Debug.Log($"Hero Strategy: <color=cyan>{strategy}</color>");
+        }
+        
+        public void SetBase(Transform baseTrf)
+        {
+            _baseTrf = baseTrf;
+        }
+        
+        public void SetPrisoner(Prisoner prisoner)
+        {
+            _prisoner = prisoner;
+        }
         
         private void Update()
         {
-            if(!_target)
-                return;
+            var moveDir = _strategy.GetMove(); ;
+            _agent.Move(moveDir, MoveSpeed,_params.LookSpeed, Time.deltaTime);
             
-            Vector3 move = Vector3.zero;
-
-            //Seek the target
-            move += SeekTarget(_target) * seekWeight;
-            move += StayAwayFromGuards() * evadeGuardWeight;
-            move += LureGuardToBase();
-            
-            //Clamp the move direction
-            move = Vector3.ClampMagnitude(move, 1);
-            _agent.Move(move, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
-            // move this to a state machine later if needed.
-            doHeroLogic();
+            // let strategy decide what needs to be done.
+            _strategy.Decide();
         }
         
-        private Vector3 StayAwayFromGuards()
+        public Guard[] QueryGuards()
         {
-            Vector3 move = Vector3.zero;
-            var colliders = Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _guardMask);
-            foreach (var col in colliders)
+            var cols = Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _guardMask);
+            Guard[] guards = new Guard[cols.Length];
+            for (int i = 0; i < cols.Length; i++)
             {
-                var away = transform.position - col.transform.position;
-                move += away.normalized;
+                guards[i] = cols[i].GetComponent<Guard>();
             }
 
-            return move;
+            return guards;
         }
         
-        private Vector3 LureGuardToBase()
-        {
-            if (_isTargetByGuard)
-                return Vector3.zero;
-            
-            // make myself be within the guard's vision cone and
-            //lure him to base.
-
-            return Vector3.zero;
-        }
-        
-        private void doHeroLogic()
-        {
-            if (!_isTargetByGuard && ReachedTarget() && _target != _baseTrf)
-            {
-                Debug.Log("Reached");
-                _prisoner = _target.GetComponent<Prisoner>();
-                if (_prisoner)
-                {
-                    _prisoner.SetTarget(this.transform);
-                    _target = _baseTrf;
-                }
-            }
-            else if (ReachedTarget() && _target == _baseTrf && _prisoner && _prisoner.ReachedTarget())
-            {
-                Destroy(_prisoner.gameObject);
-                _target = null;
-            }
-        }
-
         public void MarkChasedByGuard(bool marked, Guard guardRef)
         {
             if (marked)
@@ -110,10 +120,14 @@ namespace AgentControllers
                 _guardsTargettingMe.Add(guardRef);
                 _isTargetByGuard = true;
                 SetTarget(_baseTrf);
+                totalMarked += 1;
+                if(totalMarked >= _strategySwitchThresh)
+                    SwitchStrategy(Strategy.Aggressive);
             }
             else
             {
                 _guardsTargettingMe.Remove(guardRef);
+                totalEscaped += 1;
                 if (_guardsTargettingMe.Count <= 0)
                 {
                     if(_evadeDelayRoutine != null)
@@ -131,11 +145,6 @@ namespace AgentControllers
                
         }
         
-        public void SetBase(Transform baseTrf)
-        {
-            this._baseTrf = baseTrf;
-        }
-
         protected override void OnDrawGizmos()
         {
             base.OnDrawGizmos();
@@ -152,6 +161,12 @@ namespace AgentControllers
                 Gizmos.color = Color.blue;
                 Gizmos.DrawLine(transform.position, _target.position);
             }
+
+        }
+
+        private void OnDestroy()
+        {
+            LevelManager.Instance?.HeroKilled();
         }
     }
 }

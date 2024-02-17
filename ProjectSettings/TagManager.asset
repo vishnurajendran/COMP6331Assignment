@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Hero
+  - Prisoner
   layers:
   - Default
   - TransparentFX
