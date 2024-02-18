@@ -1,3 +1,4 @@
+using Level;
 using UnityEngine;
 
 namespace AgentControllers.Strategies
@@ -21,6 +22,12 @@ namespace AgentControllers.Strategies
         
         public override void Decide()
         {
+            if (!_controller.Target && !LevelManager.Instance.GameOver)
+            {
+                TryGetNextPrisonerTarget();
+                return;
+            }
+            
             if (!_controller.ReachedTarget())
             {
                 return;
@@ -35,20 +42,31 @@ namespace AgentControllers.Strategies
                 if (_controller.Prisoner)
                 {
                     _controller.Prisoner.SetTarget(_controller.transform);
-                    _controller.SetTarget(_controller.Base);
+                    _controller.SetTarget(_controller.ClosestBase);
                 }
 
                 return;
             }
 
-            if (_controller.Target != _controller.Base)
+            if (!_controller.Target.CompareTag("Base"))
                 return;
-
+            
             if (_controller.Prisoner && _controller.Prisoner.ReachedTarget())
             {
-                GameObject.Destroy(_controller.Prisoner.gameObject);
                 _controller.SetTarget(null);
+                GameObject.Destroy(_controller.Prisoner.gameObject);
+                LevelManager.Instance.PrisonerSaved();
             }
+        }
+
+        private void TryGetNextPrisonerTarget()
+        {
+            var prisoner = LevelManager.Instance.GetNextTarget();
+            if(!prisoner)
+                return;
+                    
+            _controller.SetPrisoner(prisoner.GetComponent<Prisoner>());
+            _controller.SetTarget(_controller.Prisoner.transform);
         }
         
         private Vector3 StayAwayFrom(Guard[] gaurds)

@@ -8,6 +8,8 @@ namespace AgentControllers
         [SerializeField] private AgentParams _params;
         
         protected override AgentParams Params => _params;
+
+        public Transform Target => _target;
         
         private void Update()
         {

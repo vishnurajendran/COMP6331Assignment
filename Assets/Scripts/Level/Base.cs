@@ -18,17 +18,15 @@ namespace Level
 
         public void Start()
         {
-            var collider = this.gameObject.AddComponent<SphereCollider>();
+            LevelManager.Instance.AddBase(transform);
+            var collider = gameObject.AddComponent<SphereCollider>();
             collider.isTrigger = true;
             collider.radius = guardKillRadius;
-            
-            var rb = this.gameObject.AddComponent<Rigidbody>();
+            var rb = gameObject.AddComponent<Rigidbody>();
             rb.isKinematic = true;
-            
             if (_heroRef != null)
             {
-                var go =Instantiate(_heroRef, transform.position, transform.rotation);
-                go.GetComponent<HeroController>().SetBase(this.transform);
+                Instantiate(_heroRef, transform.position, transform.rotation);
             }
         }
 

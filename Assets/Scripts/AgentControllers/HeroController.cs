@@ -26,7 +26,10 @@ namespace AgentControllers
         private int _strategySwitchThresh = 5;
         
         [SerializeField, Tooltip("Aggressive Mode, Lure speed modifier thresh")] 
-        private int _maxLureSpeedReductionModifier = 1;
+        private float _minLureSpeedReductionModifier = 1;
+        
+        [SerializeField, Tooltip("Aggressive Mode, Lure speed modifier thresh")] 
+        private float _maxLureSpeedReductionModifier = 1;
 
         [SerializeField, Tooltip("Min Safe Distance from a Guard")] 
         private int _minSafeDistFromGuard = 4;
@@ -35,7 +38,6 @@ namespace AgentControllers
         private int totalMarked=0;
         private int totalEscaped = 0;
         private List<Guard> _guardsTargettingMe;
-        private Transform _baseTrf;
         private Prisoner _prisoner;
         private Transform _prisonerToGoTo;
         private bool _isTargetByGuard;
@@ -51,9 +53,11 @@ namespace AgentControllers
         public bool IsTargetted => _isTargetByGuard;
         public Transform Target => _target;
         public Prisoner Prisoner => _prisoner;
-        public Transform Base => _baseTrf;
-
+        
         public float MaxLureSpeedReductionModifier => _maxLureSpeedReductionModifier;
+        public float MinLureSpeedReductionModifier => _minLureSpeedReductionModifier;
+
+        public Transform ClosestBase => LevelManager.Instance.GetClosestBase(transform.position);
         
         public void SetSpeedModifier(float modifierVal)
         {
@@ -80,11 +84,6 @@ namespace AgentControllers
             Debug.Log($"Hero Strategy: <color=cyan>{strategy}</color>");
         }
         
-        public void SetBase(Transform baseTrf)
-        {
-            _baseTrf = baseTrf;
-        }
-        
         public void SetPrisoner(Prisoner prisoner)
         {
             _prisoner = prisoner;
@@ -92,9 +91,12 @@ namespace AgentControllers
         
         private void Update()
         {
-            var moveDir = _strategy.GetMove(); ;
-            _agent.Move(moveDir, MoveSpeed,_params.LookSpeed, Time.deltaTime);
-            
+            if (Target && !ReachedTarget())
+            {
+                var moveDir = _strategy.GetMove();
+                _agent.Move(moveDir, MoveSpeed, _params.LookSpeed, Time.deltaTime);
+            }
+
             // let strategy decide what needs to be done.
             _strategy.Decide();
         }
@@ -119,7 +121,7 @@ namespace AgentControllers
                     StopCoroutine(_evadeDelayRoutine);
                 _guardsTargettingMe.Add(guardRef);
                 _isTargetByGuard = true;
-                SetTarget(_baseTrf);
+                SetTarget(ClosestBase);
                 totalMarked += 1;
                 if(totalMarked >= _strategySwitchThresh)
                     SwitchStrategy(Strategy.Aggressive);
@@ -166,6 +168,12 @@ namespace AgentControllers
 
         private void OnDestroy()
         {
+            // we failed, give em back.
+            if (Prisoner && Prisoner.Target == transform && !Prisoner.ReachedTarget())
+            {
+                LevelManager.Instance.GiveBackPrisoner(Prisoner.transform);
+            }
+            
             LevelManager.Instance?.HeroKilled();
         }
     }

@@ -27,9 +27,9 @@ namespace Agents
         public void Move(Vector3 direction, float moveSpeed,float lookSpeed, float deltaTime)
         {
             var moveDir = Vector3.zero;
-            var obstacleAvoidance = AvoidObstacles() * avoidanceCorrectionThresh;
-            moveDir += obstacleAvoidance;
+            var obstacleAvoidance = AvoidObstacles().normalized * avoidanceCorrectionThresh;
             moveDir += direction;
+            moveDir += obstacleAvoidance;
             
             moveDir = moveDir.normalized;
             var move = moveDir * (moveSpeed * deltaTime);

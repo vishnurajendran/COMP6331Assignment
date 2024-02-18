@@ -15,7 +15,8 @@ namespace AgentControllers
     public class Guard : AgentController
     {
         private const string HeroTag = "Hero";
-        
+
+        [SerializeField] private LayerMask _guardMask;
         [SerializeField] private SphereCollider visionRangeCollider;
         [SerializeField] private GuardAgentParams _params;
 
@@ -120,18 +121,32 @@ namespace AgentControllers
         private void ChaseHero()
         {
             var dir = (_currHeroTarget.transform.position - transform.position).normalized;
-            _agent.Move(dir, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
+            dir += StayAwayFrom(Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _guardMask));
+            _agent.Move(dir.normalized, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
         }
         
         private void DoWander()
         {
             var dir = (wanderPos - transform.position).normalized;
-            _agent.Move(dir, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
+            dir += StayAwayFrom(Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _guardMask));
+            _agent.Move(dir.normalized, _params.AgentSpeed,_params.LookSpeed, Time.deltaTime);
             
             if (ReachedTargetPosition(wanderPos))
             {
                 wanderPos = GetNextWanderPosition();
             }
+        }
+        
+        private Vector3 StayAwayFrom(Collider[] gaurds)
+        {
+            Vector3 move = Vector3.zero;
+            foreach (var col in gaurds)
+            {
+                var away = transform.position - col.transform.position;
+                move += away.normalized;
+            }
+
+            return move.normalized;
         }
         
         private bool IsVisible(Transform target)

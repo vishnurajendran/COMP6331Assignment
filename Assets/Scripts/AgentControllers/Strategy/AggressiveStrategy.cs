@@ -47,7 +47,7 @@ namespace AgentControllers.Strategies
             }
             avgDist /= guards.Length;
             var t = avgDist / guards[0].VisionRange;
-            return Mathf.Lerp(0, _controller.MaxLureSpeedReductionModifier, 1 - t);
+            return Mathf.Lerp(_controller.MaxLureSpeedReductionModifier, _controller.MaxLureSpeedReductionModifier, 1 - t);
         } 
         
         public override void Decide()

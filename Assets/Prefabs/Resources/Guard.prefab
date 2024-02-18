@@ -208,6 +208,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _target: {fileID: 0}
+  _guardMask:
+    serializedVersion: 2
+    m_Bits: 128
   visionRangeCollider: {fileID: 6135790713627387498}
   _params: {fileID: 11400000, guid: 087f1969e6dbf3443854dba872c442e9, type: 2}
 --- !u!114 &7798976415945702564
@@ -228,7 +231,7 @@ MonoBehaviour:
   _obsAvoidRayOrigin: {fileID: 6379079521520151779}
   _obsDetectionAnglePerSide: 90
   _rayResolution: 50
-  _maxObsDetectDist: 3
+  _maxObsDetectDist: 2
   _correctionThreshold: 100
   smartCheck: 1
 --- !u!114 &8840948431007717094
