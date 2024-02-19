@@ -35,7 +35,7 @@ namespace AgentControllers
         private Coroutine delayedStop;
 
         public float VisionRange => _params.VisionRange;
-        
+        private Vector3 _patrolOrigin;
         protected override void Start()
         {
             base.Start();
@@ -86,6 +86,7 @@ namespace AgentControllers
         public void SetPrisioner(Prisoner prisoner)
         {
             _prisoner = prisoner;
+            _patrolOrigin = _prisoner.transform.position;
             wanderPos = GetNextWanderPosition();
         }
 
@@ -107,13 +108,10 @@ namespace AgentControllers
 
         private Vector3 WanderPositionRelativeToPrisoner()
         {
-            var basePos = _prisoner.transform.position;
-            
-            var dir = (transform.position-_prisoner.transform.position).normalized;
-            
+            var dir = (transform.position-_patrolOrigin).normalized;
             var dist = Random.Range(_params.WanderMinRadius, _params.WanderMaxRadius);
             var randAngle = Random.Range(-30f, 30f);
-            Vector3 newPosition = _prisoner.transform.position + Quaternion.Euler(0f, randAngle, 0f) * dir * dist;
+            Vector3 newPosition = _patrolOrigin + Quaternion.Euler(0f, randAngle, 0f) * dir * dist;
             newPosition.y = 0;
             return newPosition;
         }
