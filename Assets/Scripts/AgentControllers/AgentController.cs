@@ -12,8 +12,8 @@ namespace AgentControllers
     [RequireComponent(typeof(Agent))]
     public abstract class AgentController : MonoBehaviour
     {
-        protected abstract AgentParams Params { get; }
-
+        protected abstract BaseAgentParams Params { get; }
+        
         [SerializeField] 
         protected Transform _target;
         

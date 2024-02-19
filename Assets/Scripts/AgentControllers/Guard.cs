@@ -22,7 +22,7 @@ namespace AgentControllers
 
         private HashSet<Collider> _collidersInVicinity;
 
-        protected override AgentParams Params => _params;
+        protected override BaseAgentParams Params => _params;
 
         // we will use this to reference any hero calls.
         private HeroController _currHeroTarget = null;
@@ -210,7 +210,7 @@ namespace AgentControllers
             if(delayedStop != null)
                 StopCoroutine(delayedStop);
             
-            hero.MarkChasedByGuard(true, this);
+            hero.MarkChasedByGuard(true, transform);
             if(IsInCaptureRange(hero.transform))
             {
                 Destroy(hero.gameObject);
@@ -239,7 +239,7 @@ namespace AgentControllers
         IEnumerator DelayedChaseStop(float delay)
         {
             yield return new WaitForSeconds(delay);
-            _currHeroTarget.MarkChasedByGuard(false, this);
+            _currHeroTarget.MarkChasedByGuard(false, transform);
             _currHeroTarget = null;
             _currHeroTargetTransform = null;
         }
@@ -264,13 +264,7 @@ namespace AgentControllers
                 Handles.color = capture;
                 Handles.DrawSolidDisc(transform.position, Vector3.up, _params.CaptureRadius);
 #endif
-
-                if (_currHeroTarget)
-                {
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawLine(transform.position, _currHeroTarget.transform.position);
-                }
-
+                
                 if (wanderPos != Vector3.zero)
                 {
                     var destColor = Color.magenta;
@@ -286,7 +280,7 @@ namespace AgentControllers
         private void OnDestroy()
         {
             if(_currHeroTarget)
-                _currHeroTarget.MarkChasedByGuard(false, this);
+                _currHeroTarget.MarkChasedByGuard(false, transform);
             
             if(LevelManager.Instance != null)
                 LevelManager.Instance.DeRegisterGuard(transform);

@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 8840948431007717094}
   m_Layer: 7
   m_Name: Guard_L
-  m_TagString: Untagged
+  m_TagString: Guard
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -210,7 +210,7 @@ MonoBehaviour:
   _target: {fileID: 0}
   _guardMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 1152
   visionRangeCollider: {fileID: 6135790713627387498}
   _params: {fileID: 11400000, guid: d4af208f01b7e8e4bb9819517dea4d1d, type: 2}
 --- !u!114 &7798976415945702564

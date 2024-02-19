@@ -5,9 +5,9 @@ namespace AgentControllers
 {
     public class Prisoner : AgentController
     {
-        [SerializeField] private AgentParams _params;
+        [SerializeField] private BaseAgentParams _params;
         
-        protected override AgentParams Params => _params;
+        protected override BaseAgentParams Params => _params;
 
         public Transform Target => _target;
         

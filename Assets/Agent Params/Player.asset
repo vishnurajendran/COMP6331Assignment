@@ -9,15 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c98f95527ccfc2488f2faebff97e994, type: 3}
-  m_Name: Guard_L
+  m_Script: {fileID: 11500000, guid: 7949f0274ab84193903ebc34a790c1a3, type: 3}
+  m_Name: Player
   m_EditorClassIdentifier: 
-  speed: 4
+  speed: 5
   lookSpeed: 720
-  stoppingDist: 2
+  stoppingDist: 1.25
   areaDetectorSize: 3
-  visionRange: 7
-  visionAngle: 120
-  wanderMinRadius: 10
-  wanderMaxRadius: 30
-  captureRadius: 2

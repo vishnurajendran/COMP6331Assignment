@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AgentControllers;
+using AgentControllers.AgentControllers;
 using UnityEngine;
 
 public class Saw : MonoBehaviour
@@ -50,6 +51,12 @@ public class Saw : MonoBehaviour
         if (hero)
         {
             Destroy(hero.gameObject);
+        }
+        else
+        {
+            var player = collider.GetComponentInParent<AgentUserController>();
+            if(player)
+                player.ResetPlayer();
         }
     }
 }

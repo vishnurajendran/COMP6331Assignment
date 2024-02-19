@@ -264,7 +264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _obstacleAvoidanceMask:
     serializedVersion: 2
-    m_Bits: 768
+    m_Bits: 896
   _obsAvoidRayOrigin: {fileID: 6493580268951958333}
   _obsDetectionAnglePerSide: 90
   _rayResolution: 50

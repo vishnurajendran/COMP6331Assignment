@@ -4,7 +4,7 @@ using UnityEngine;
 namespace AgentControllers
 {
     [CreateAssetMenu(fileName = "New Params", menuName = "COMP6331/Create Agent Params")]
-    public class AgentParams : ScriptableObject
+    public class BaseAgentParams : ScriptableObject
     {
         [SerializeField]
         private float speed;

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Level;
 using UnityEngine;
 
@@ -6,7 +8,17 @@ namespace AgentControllers.Strategies
     public class AggressiveStrategy : HeroStrategy
     {
         public override Strategy CurrentStrategy => Strategy.Aggressive;
+        private Collider[] _collidersInVicinity = Array.Empty<Collider>();
 
+        private float activeTime;
+        
+        protected override void OnInit()
+        {
+            base.OnInit();
+            _controller.Angry = true;
+            activeTime = 0;
+        }
+        
         public override Vector3 GetMove()
         {
             if (LevelManager.Instance.GuardsInLevel <= 0)
@@ -17,24 +29,39 @@ namespace AgentControllers.Strategies
             //Seek the target
             move += _controller.SeekTarget(_controller.Target) * _controller.SeekWeight;
 
-            var guards = _controller.QueryGuards();
+            var colliders = _controller.QueryColliders();
+            var filtered = Filter(colliders);
             if (_controller.IsTargetted)
             {
                 // slow my speed down a notch, to let the AI keep up a bit
-                _controller.SetSpeedModifier(GetSpeedModification(guards));
-                move += StayAwayFrom(guards) * (_controller.EvadeGuardWeight * _controller.AggressiveWeight);
+                _controller.SetSpeedModifier(GetSpeedModification(filtered));
+                move += StayAwayFrom(colliders) * (_controller.EvadeGuardWeight * _controller.AggressiveWeight);
             }
             else
             {
                 // use my full speed
                 _controller.SetSpeedModifier(0);
-                move += MoveTowards(guards) * _controller.AggressiveWeight;
-                move += StayAwayWithMinDist(guards, _controller.MinSafeDistFromGuard);
+                move += MoveTowards(colliders) * _controller.AggressiveWeight;
+                move += StayAwayWithMinDist(colliders, _controller.MinSafeDistFromGuard);
             }
 
             return move.normalized;
         }
 
+        private Guard[] Filter(Collider[] collider)
+        {
+            var guards = new List<Guard>();
+            foreach (var col in collider)
+            {
+                if (col.CompareTag("Guard"))
+                {
+                    guards.Add(col.GetComponent<Guard>());
+                }
+            }
+
+            return guards.ToArray();
+        }
+        
         private float GetSpeedModification(Guard[] guards)
         {
             if (guards.Length <= 0)
@@ -52,29 +79,35 @@ namespace AgentControllers.Strategies
         
         public override void Decide()
         {
+            _collidersInVicinity = _controller.QueryColliders();
+            CheckIsVisibleToNearbyPlayers(_collidersInVicinity);
             if (LevelManager.Instance.GuardsInLevel <= 0)
             {
                 _controller.SwitchStrategy(Strategy.Default);
                 return;
             }
 
-            /*if (_controller.Target.CompareTag("Prisoner") && _controller.ReachedTarget())
+            if (_controller.CanResetAggro)
             {
-                _controller.SetPrisoner(_controller.Target.GetComponent<Prisoner>());
-                _controller.Prisoner.SetTarget(_controller.transform);
-                _controller.SetTarget(_controller.ClosestBase);
-                _controller.ResetThresholds();
-                _controller.SwitchStrategy(Strategy.Default);
-            }*/
+                activeTime += Time.deltaTime;
+                if (activeTime > 15f)
+                {
+                    _controller.ResetThresholds();
+                    _controller.SwitchStrategy(Strategy.Default);
+                }
+            }
         }
         
-        private Vector3 MoveTowards(Guard[] gaurds)
+        private Vector3 MoveTowards(Collider[] colliders)
         {
             Vector3 move = Vector3.zero;
-            foreach (var guard in gaurds)
+            foreach (var col in colliders)
             {
+                if (col.CompareTag("Player"))
+                    continue;
+                
                 var guardPos = _controller.transform.position;
-                var safePos = guardPos + guard.transform.forward;
+                var safePos = guardPos + col.transform.forward;
                 var away = safePos - _controller.transform.position;
                 // move to its vision
                 move += away.normalized;
@@ -82,24 +115,30 @@ namespace AgentControllers.Strategies
             return Vector3.ClampMagnitude(move,1);
         }
         
-        private Vector3 StayAwayFrom(Guard[] gaurds)
+        private Vector3 StayAwayFrom(Collider[] colliders)
         {
             Vector3 move = Vector3.zero;
-            foreach (var col in gaurds)
+            foreach (var col in colliders)
             {
+                if (col.CompareTag("Player"))
+                    continue;
+                
                 var away = col.transform.position - _controller.transform.position;
                 move -= away.normalized;
             }
             return Vector3.ClampMagnitude(move,1);
         }
 
-        private Vector3 StayAwayWithMinDist(Guard[] guards, float minDist)
+        private Vector3 StayAwayWithMinDist(Collider[] colliders, float minDist)
         {
             var move = Vector3.zero;
-            foreach (var guard in guards)
+            foreach (var col in colliders)
             {
-                var dir = guard.transform.position - _controller.transform.position;
-                var dist = Vector3.Distance(_controller.transform.position, guard.transform.position);
+                if (col.CompareTag("Player"))
+                    continue;
+                
+                var dir = col.transform.position - _controller.transform.position;
+                var dist = Vector3.Distance(_controller.transform.position, col.transform.position);
                 if (dist < minDist)
                 {
                     // stay away from this enemy

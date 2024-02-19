@@ -44,6 +44,13 @@ namespace Agents
             LookAt(lookDir, lookSpeed, deltaTime);
         }
 
+        public void Teleport(Vector3 position)
+        {
+            _controller.enabled = false;
+            transform.position = position;
+            _controller.enabled = true;
+        }
+        
         private Vector3 AvoidObstacles()
         {
             if (!_obsAvoidancePlugin)

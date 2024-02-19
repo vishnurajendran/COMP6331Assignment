@@ -15,9 +15,12 @@ namespace AgentControllers
 {
     public class HeroController : AgentController
     {
-        protected override AgentParams Params => _params;
-        [SerializeField] private AgentParams _params;
-        [SerializeField] private LayerMask _guardMask;
+        protected override BaseAgentParams Params => _params;
+        public StandardAIParams MyParams => _params;
+       
+        [SerializeField] private Transform _angryBillboard;
+        [SerializeField] private StandardAIParams _params;
+        [FormerlySerializedAs("_guardMask")] [SerializeField] private LayerMask _detectionMask;
         [FormerlySerializedAs("seekWeight")] [SerializeField] private float _seekWeight=1;
         [FormerlySerializedAs("evadeGuardWeight")] [SerializeField] private float _evadeGuardWeight=10;
         [SerializeField] private float _aggressiveModeWeight = 3;
@@ -33,17 +36,22 @@ namespace AgentControllers
 
         [SerializeField, Tooltip("Min Safe Distance from a Guard")] 
         private int _minSafeDistFromGuard = 4;
+
+        [SerializeField, Tooltip("Min Safe Distance from a Guard")]
+        private LineRenderer _line;
         
         private float _modifier;
         private int _totalMarked=0;
         private int _totalEscaped = 0;
-        private List<Guard> _guardsTargettingMe;
+        private List<Transform> _guardsTargettingMe;
         private Prisoner _prisoner;
         private Transform _prisonerToGoTo;
         private bool _isTargetByGuard;
         private Coroutine _evadeDelayRoutine;
         private IHeroStrategy _strategy;
 
+        private Vector3 _startPosition;
+        
         private float MoveSpeed => _params.AgentSpeed + _modifier;
         
         public float SeekWeight => _seekWeight;
@@ -54,10 +62,25 @@ namespace AgentControllers
         public Transform Target => _target;
         public Prisoner Prisoner => _prisoner;
         
+        public bool CanResetAggro { get;private set; }
+
+        private bool _surenderPrisoner = true;
+        
+        public bool Angry
+        {
+            get => _angryBillboard.gameObject.activeSelf;
+            set => _angryBillboard.gameObject.SetActive(value);
+        }
+
         public float MaxLureSpeedReductionModifier => _maxLureSpeedReductionModifier;
         public float MinLureSpeedReductionModifier => _minLureSpeedReductionModifier;
 
         public Transform ClosestBase => LevelManager.Instance.GetClosestBase(transform.position);
+
+        public void AllowAggroReset(bool allow)
+        {
+            CanResetAggro = allow;
+        }
         
         public void SetSpeedModifier(float modifierVal)
         {
@@ -67,11 +90,11 @@ namespace AgentControllers
         protected override void Start()
         {
             base.Start();
+            _startPosition = transform.position;
             LevelManager.Instance?.AddHero();
             SwitchStrategy(Strategy.Default);
-            _guardsTargettingMe = new List<Guard>();
-            _prisonerToGoTo = LevelManager.Instance.GetNextTarget(transform.position);
-            SetTarget(_prisonerToGoTo);
+            _guardsTargettingMe = new List<Transform>();
+            SetPrisonerToGoTo(LevelManager.Instance.GetNextTarget(transform.position));
         }
 
         public void SwitchStrategy(Strategy strategy)
@@ -89,8 +112,25 @@ namespace AgentControllers
             _prisoner = prisoner;
         }
         
+        public void SetPrisonerToGoTo(Transform prisoner)
+        {
+            _prisonerToGoTo = prisoner;
+            SetTarget(_prisonerToGoTo);
+        }
+        
         private void Update()
         {
+            if (Prisoner)
+            {
+                _line.positionCount = 2;
+                _line.SetPosition(0, transform.position + new Vector3(0,1,0));
+                _line.SetPosition(1, Prisoner.transform.position+ new Vector3(0,1,0));
+            }
+            else
+            {
+                _line.positionCount = 0;
+            }
+            
             if (Target && !ReachedTarget())
             {
                 var moveDir = _strategy.GetMove();
@@ -103,7 +143,7 @@ namespace AgentControllers
         
         public Guard[] QueryGuards()
         {
-            var cols = Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _guardMask);
+            var cols = Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _detectionMask);
             Guard[] guards = new Guard[cols.Length];
             for (int i = 0; i < cols.Length; i++)
             {
@@ -113,7 +153,12 @@ namespace AgentControllers
             return guards;
         }
         
-        public void MarkChasedByGuard(bool marked, Guard guardRef)
+        public Collider[] QueryColliders()
+        {
+            return Physics.OverlapSphere(transform.position, _params.AreaDetectorSize, _detectionMask);;
+        }
+        
+        public void MarkChasedByGuard(bool marked, Transform guardRef)
         {
             if (marked)
             {
@@ -134,9 +179,35 @@ namespace AgentControllers
                 {
                     if(_evadeDelayRoutine != null)
                         StopCoroutine(_evadeDelayRoutine);
+                    if(!this)
+                        return;
                     _evadeDelayRoutine = StartCoroutine(DelayEvadeStop(1));
                 }
             }
+        }
+
+        public void ResetThresholds()
+        {
+            _totalMarked = 0;
+            _totalEscaped = 0;
+        }
+        
+        public void CaughtByPlayer(bool killed=false)
+        {
+            if (killed)
+            {
+                Debug.Log("Hero Killed!!");
+                _surenderPrisoner = false;
+                Destroy(this.gameObject);
+                return;
+            }
+            
+            Debug.Log("Hero Caught!!");
+            UIManager.Instance?.IncrementScore(-10);
+            _agent.Teleport(_startPosition);
+            ResetThresholds();
+            SwitchStrategy(Strategy.Default);
+            
         }
 
         IEnumerator DelayEvadeStop(float delay)
@@ -154,6 +225,11 @@ namespace AgentControllers
             if (_isTargetByGuard)
             {
                 status = Color.red;
+                foreach (var _guard in _guardsTargettingMe)
+                {
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(transform.position, _guard.transform.position);
+                }
             }
 
             Gizmos.color = status;
@@ -164,26 +240,35 @@ namespace AgentControllers
                 Gizmos.DrawLine(transform.position, _target.position);
             }
 
+#if UNITY_EDITOR
+            Color vision = new Color(0.55f, 0.55f, 0, 1);
+            vision.a = 0.5f;
+            Handles.color = vision;
+            var pos = transform.position;
+            var forward = transform.forward;
+            Handles.DrawSolidArc(pos, Vector3.up, forward, _params.VisionAngle / 2, _params.VisionRange);
+            Handles.DrawSolidArc(pos, Vector3.up, forward, -_params.VisionAngle / 2, _params.VisionRange);
+#endif
+            
         }
 
-        public void ResetThresholds()
-        {
-            _totalMarked = 0;
-            _totalEscaped = 0;
-        }
-        
         private void OnDestroy()
         {
             if(_evadeDelayRoutine != null)
                 StopCoroutine(_evadeDelayRoutine);
             
             // we failed, give em back.
-            if (Prisoner && Prisoner.Target == transform && !Prisoner.ReachedTarget())
+            if (Prisoner && _surenderPrisoner)
             {
                 LevelManager.Instance.GiveBackPrisoner(Prisoner.transform);
+            }
+            else if (!Prisoner && _prisonerToGoTo)
+            {
+                LevelManager.Instance.GiveBackPrisoner(_prisonerToGoTo.transform);
             }
             
             LevelManager.Instance?.HeroKilled();
         }
+        
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AgentControllers;
+using AgentControllers.AgentControllers;
 using UnityEngine;
 
 namespace Level
@@ -10,6 +11,7 @@ namespace Level
     {
         private static GameObject _heroRef;
         [SerializeField, Range(1, 10)] private float guardKillRadius = 0.1f;
+        [SerializeField] private bool _allowAgroResetOnHeros = false;
         private void Awake()
         {
             if (_heroRef == null)
@@ -26,7 +28,8 @@ namespace Level
             rb.isKinematic = true;
             if (_heroRef != null)
             {
-                Instantiate(_heroRef, transform.position, transform.rotation);
+               var hero = Instantiate(_heroRef, transform.position, transform.rotation).GetComponent<HeroController>();
+               hero.AllowAggroReset(_allowAgroResetOnHeros);
             }
         }
 
@@ -40,11 +43,15 @@ namespace Level
 
         private void OnTriggerEnter(Collider other)
         {
-            var guard = other.GetComponent<Guard>();
-            if (guard)
+           
+            if (other.CompareTag("Guard"))
             {
                 UIManager.Instance?.IncrementScore();
-                Destroy(guard.gameObject);
+                Destroy(other.gameObject);
+            }
+            else if (other.CompareTag("Player"))
+            {
+                other.GetComponent<AgentUserController>().ResetPlayer();
             }
         }
     }
