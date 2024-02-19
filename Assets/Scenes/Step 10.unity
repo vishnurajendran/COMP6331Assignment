@@ -453,7 +453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _delay: 1
   _otherPositionDelta: {x: 0, y: 11, z: 0}
-  _positionChangeDelay: 5
+  _positionChangeDelay: 7
   _speed: 20
 --- !u!65 &44238650
 BoxCollider:
@@ -638,7 +638,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _delay: 0
   _otherPositionDelta: {x: 0, y: -11, z: 0}
-  _positionChangeDelay: 3
+  _positionChangeDelay: 5
   _speed: 20
 --- !u!65 &57325842
 BoxCollider:
@@ -11284,7 +11284,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1563280543272074116, guid: be4f904696f69cb4cb6d7f336a6c1b16, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.57489485
+      value: -0.5748949
       objectReference: {fileID: 0}
     - target: {fileID: 2990814333045243967, guid: be4f904696f69cb4cb6d7f336a6c1b16, type: 3}
       propertyPath: m_LocalPosition.x
@@ -11332,15 +11332,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9170909688702169789, guid: be4f904696f69cb4cb6d7f336a6c1b16, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.29778987
+      value: 0.2977898
       objectReference: {fileID: 0}
     - target: {fileID: 9170909688702169789, guid: be4f904696f69cb4cb6d7f336a6c1b16, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.58412033
+      value: -0.5841203
       objectReference: {fileID: 0}
     - target: {fileID: 9170909688702169789, guid: be4f904696f69cb4cb6d7f336a6c1b16, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.24335669
+      value: 0.2433567
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
