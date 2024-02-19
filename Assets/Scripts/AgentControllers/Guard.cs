@@ -29,12 +29,13 @@ namespace AgentControllers
         
         //faster to check on transform, than use a get-component.
         private Transform _currHeroTargetTransform = null;
-        private Prisoner _prisoner;
         private Vector3 wanderPos;
 
         private Coroutine delayedStop;
 
         public float VisionRange => _params.VisionRange;
+
+        private bool _hasPatrolOrigin = false;
         private Vector3 _patrolOrigin;
         protected override void Start()
         {
@@ -85,15 +86,15 @@ namespace AgentControllers
         
         public void SetPrisioner(Prisoner prisoner)
         {
-            _prisoner = prisoner;
-            _patrolOrigin = _prisoner.transform.position;
+            _hasPatrolOrigin = true;
+            _patrolOrigin = prisoner.transform.position;
             wanderPos = GetNextWanderPosition();
         }
 
         private Vector3 GetNextWanderPosition()
         {
             var basePos = transform.position;
-            if (_prisoner)
+            if (_hasPatrolOrigin)
                 return WanderPositionRelativeToPrisoner();
             else
             {
@@ -102,10 +103,38 @@ namespace AgentControllers
                 var delta = new Vector2(dist * Mathf.Cos(randAngle), dist * Mathf.Sin(randAngle));
 
                 var newPos = new Vector3(basePos.x + delta.x, basePos.y, basePos.z + delta.y);
+                var clearedPosition = ClearPositionInCaseOfClipping(newPos);
                 return newPos;
             }
         }
 
+        private Vector3 ClearPositionInCaseOfClipping(Vector3 referencePosition)
+        {
+            var colliders = Physics.OverlapSphere(referencePosition, 0.5f, LayerMask.NameToLayer("Obstacles")|LayerMask.NameToLayer("Walls"));
+            if (colliders.Length > 1)
+            {
+                var avgPos = Vector3.zero;
+                foreach (var col in colliders)
+                {
+                    avgPos += col.transform.position;
+                }
+
+                return avgPos / colliders.Length;
+            }
+            else if(colliders.Length == 1)
+            {
+                var col = colliders[0];
+                var bounds = col.bounds;
+                var newPos = new Vector3(col.transform.position.x + bounds.extents.x / 2, 0,
+                    col.transform.position.z + bounds.extents.z / 2);
+                return newPos;
+            }
+            else
+            {
+                return referencePosition;
+            }
+        }
+        
         private Vector3 WanderPositionRelativeToPrisoner()
         {
             var dir = (transform.position-_patrolOrigin).normalized;
@@ -118,7 +147,7 @@ namespace AgentControllers
         
         private void Update()
         {
-            if (_prisoner == null && wanderPos.Equals(Vector3.zero))
+            if (!_hasPatrolOrigin && wanderPos.Equals(Vector3.zero))
                 wanderPos = GetNextWanderPosition();
             
             if (_currHeroTarget)

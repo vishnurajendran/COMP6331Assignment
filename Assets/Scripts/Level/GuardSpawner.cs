@@ -57,6 +57,12 @@ namespace Level
             color.a = 0.05f;
             Handles.color = color;
             Handles.DrawSolidDisc(transform.position, Vector3.up, prisonerDetectionRadius);
+            var colls = Physics.OverlapSphere(transform.position, prisonerDetectionRadius, detectionLayer);
+            if (colls.Length <= 0)
+            {
+                Handles.Label(transform.position, $"Guard target: NO_TARGET");
+            }
+            
             #endif
         }
     }

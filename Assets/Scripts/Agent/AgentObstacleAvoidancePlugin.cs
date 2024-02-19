@@ -47,7 +47,7 @@ namespace Agents
                     var distance = Vector3.Distance(transform.position, pos);
                     var distPerc = distance / _maxObsDetectDist;
                     var intensity = Mathf.Lerp(10f, 1f, 1 - distPerc);
-                    if (!hit.collider && smartCheck)
+                    if (smartCheck)
                     {
                         var kinInfo = hit.collider.GetComponent<KinematicInfo>();
                         if (kinInfo)
@@ -62,9 +62,9 @@ namespace Agents
                     else
                         _correction -= dir * ((1.0f / _rayResolution)*intensity);
                     
-                    var normalPoint = hit.point + hit.normal * _maxObsDetectDist;
-                    var normalDir = (transform.position - normalPoint).normalized;
-                    _correction -= normalDir * ((1.0f / _rayResolution));
+                    // var normalPoint = hit.point + hit.normal * _maxObsDetectDist;
+                    // var normalDir = (transform.position - normalPoint).normalized;
+                    // _correction -= normalDir * ((1.0f / _rayResolution));
                 }
                 else
                 {

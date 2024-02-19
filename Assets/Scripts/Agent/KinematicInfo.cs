@@ -23,7 +23,7 @@ namespace Agents
 
         public Vector3 GetEstimatedPosition(float deltaTime)
         {
-            return transform.position + (MoveDir * (DeltaSpeed * deltaTime));
+            return transform.position + (MoveDir * (DeltaSpeed));
         }
     }
 }

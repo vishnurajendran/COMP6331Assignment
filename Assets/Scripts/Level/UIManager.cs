@@ -7,9 +7,9 @@ namespace Level
 {
     public class UIManager : MonoBehaviour
     {
-        private const string PREFIX = "Hero <color=black>Score:</color>";
-        private const string HERO_KILL_PREFIX = "Heros <color=black>Killed</color>:";
-        private const string PRISONER_SAVED_PREFIX = "Prisoners <color=black>Saved</color>:";
+        private const string PREFIX = "Hero <color=white>Score:</color>";
+        private const string HERO_KILL_PREFIX = "Heros <color=white>Killed</color>:";
+        private const string PRISONER_SAVED_PREFIX = "Prisoners <color=white>Saved</color>:";
 
         [FormerlySerializedAs("textTmp")] [SerializeField]
         private TMPro.TMP_Text _textTmp;

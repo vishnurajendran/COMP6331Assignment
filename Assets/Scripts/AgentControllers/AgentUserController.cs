@@ -53,13 +53,13 @@ namespace AgentControllers
                     if (hero && !caughtHeros.Contains(hero))
                     {
                         caughtHeros.Add(hero);
-                        OnheroCaught(hero);
+                        OnHeroCaught(hero);
                         break;
                     }
                 }
             }
 
-            private void OnheroCaught(HeroController hero)
+            private void OnHeroCaught(HeroController hero)
             {
                 if (!hero.Prisoner)
                 {

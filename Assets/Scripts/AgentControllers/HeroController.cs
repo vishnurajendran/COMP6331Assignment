@@ -225,10 +225,10 @@ namespace AgentControllers
             if (_isTargetByGuard)
             {
                 status = Color.red;
-                foreach (var _guard in _guardsTargettingMe)
+                foreach (var guard in _guardsTargettingMe)
                 {
                     Gizmos.color = Color.red;
-                    Gizmos.DrawLine(transform.position, _guard.transform.position);
+                    Gizmos.DrawLine(transform.position, guard.transform.position);
                 }
             }
 
