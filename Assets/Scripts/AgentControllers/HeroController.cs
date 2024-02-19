@@ -35,8 +35,8 @@ namespace AgentControllers
         private int _minSafeDistFromGuard = 4;
         
         private float _modifier;
-        private int totalMarked=0;
-        private int totalEscaped = 0;
+        private int _totalMarked=0;
+        private int _totalEscaped = 0;
         private List<Guard> _guardsTargettingMe;
         private Prisoner _prisoner;
         private Transform _prisonerToGoTo;
@@ -70,7 +70,7 @@ namespace AgentControllers
             LevelManager.Instance?.AddHero();
             SwitchStrategy(Strategy.Default);
             _guardsTargettingMe = new List<Guard>();
-            _prisonerToGoTo = LevelManager.Instance.GetNextTarget();
+            _prisonerToGoTo = LevelManager.Instance.GetNextTarget(transform.position);
             SetTarget(_prisonerToGoTo);
         }
 
@@ -122,14 +122,14 @@ namespace AgentControllers
                 _guardsTargettingMe.Add(guardRef);
                 _isTargetByGuard = true;
                 SetTarget(ClosestBase);
-                totalMarked += 1;
-                if(totalMarked >= _strategySwitchThresh)
+                _totalMarked += 1;
+                if(_totalMarked >= _strategySwitchThresh)
                     SwitchStrategy(Strategy.Aggressive);
             }
             else
             {
                 _guardsTargettingMe.Remove(guardRef);
-                totalEscaped += 1;
+                _totalEscaped += 1;
                 if (_guardsTargettingMe.Count <= 0)
                 {
                     if(_evadeDelayRoutine != null)
@@ -166,8 +166,17 @@ namespace AgentControllers
 
         }
 
+        public void ResetThresholds()
+        {
+            _totalMarked = 0;
+            _totalEscaped = 0;
+        }
+        
         private void OnDestroy()
         {
+            if(_evadeDelayRoutine != null)
+                StopCoroutine(_evadeDelayRoutine);
+            
             // we failed, give em back.
             if (Prisoner && Prisoner.Target == transform && !Prisoner.ReachedTarget())
             {

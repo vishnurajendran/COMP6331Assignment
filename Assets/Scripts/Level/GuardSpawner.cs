@@ -11,17 +11,18 @@ namespace Level
 {
     public class GuardSpawner : MonoBehaviour
     {
+        [SerializeField] private string _prefabName="Guard";
         [SerializeField] 
         private float prisonerDetectionRadius=2;
 
         [SerializeField] private LayerMask detectionLayer;
 
-        private static GameObject _guardPrefab;
+        private GameObject _guardPrefab;
 
         private void Awake()
         {
             if (_guardPrefab == null)
-                _guardPrefab = Resources.Load<GameObject>("Guard");
+                _guardPrefab = Resources.Load<GameObject>(_prefabName);
         }
 
         private void Start()

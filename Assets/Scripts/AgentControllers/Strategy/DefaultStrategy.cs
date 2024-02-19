@@ -15,7 +15,7 @@ namespace AgentControllers.Strategies
             Vector3 move = Vector3.zero;
 
             //Seek the target
-            move += _controller.SeekTarget(_controller.Target) * _controller.SeekWeight;
+            move += _controller.SeekTarget(_controller.Target) * (_controller.SeekWeight * (_controller.IsTargetted?_controller.EvadeGuardWeight:1));
             move += StayAwayFrom(_controller.QueryGuards()) * _controller.EvadeGuardWeight;
             return move.normalized;
         }
@@ -61,7 +61,7 @@ namespace AgentControllers.Strategies
 
         private void TryGetNextPrisonerTarget()
         {
-            var prisoner = LevelManager.Instance.GetNextTarget();
+            var prisoner = LevelManager.Instance.GetNextTarget(_controller.transform.position);
             if(!prisoner)
                 return;
                     

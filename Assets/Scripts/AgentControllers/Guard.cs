@@ -93,16 +93,31 @@ namespace AgentControllers
         {
             var basePos = transform.position;
             if (_prisoner)
-                basePos = _prisoner.transform.position;
-            
-            var randAngle = Random.Range(0, Mathf.PI * 2f);
-            var dist = Random.Range(_params.WanderMinRadius, _params.WanderMaxRadius);
-            var delta = new Vector2(dist * Mathf.Cos(randAngle), dist * Mathf.Sin(randAngle));
-            
-            var newPos = new Vector3(basePos.x + delta.x, basePos.y, basePos.z + delta.y);
-            return newPos;
+                return WanderPositionRelativeToPrisoner();
+            else
+            {
+                var randAngle = Random.Range(0, Mathf.PI * 2f);
+                var dist = Random.Range(_params.WanderMinRadius, _params.WanderMaxRadius);
+                var delta = new Vector2(dist * Mathf.Cos(randAngle), dist * Mathf.Sin(randAngle));
+
+                var newPos = new Vector3(basePos.x + delta.x, basePos.y, basePos.z + delta.y);
+                return newPos;
+            }
         }
 
+        private Vector3 WanderPositionRelativeToPrisoner()
+        {
+            var basePos = _prisoner.transform.position;
+            
+            var dir = (transform.position-_prisoner.transform.position).normalized;
+            
+            var dist = Random.Range(_params.WanderMinRadius, _params.WanderMaxRadius);
+            var randAngle = Random.Range(-30f, 30f);
+            Vector3 newPosition = _prisoner.transform.position + Quaternion.Euler(0f, randAngle, 0f) * dir * dist;
+            newPosition.y = 0;
+            return newPosition;
+        }
+        
         private void Update()
         {
             if (_prisoner == null && wanderPos.Equals(Vector3.zero))

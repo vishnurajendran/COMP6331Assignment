@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class Saw : MonoBehaviour
 {
+    [SerializeField] private float _delay=0;
     [SerializeField] private Vector3 _otherPositionDelta;
     [SerializeField] private float _positionChangeDelay;
     [SerializeField] private float _speed;
@@ -23,6 +24,7 @@ public class Saw : MonoBehaviour
 
     public IEnumerator SawMotion()
     {
+        yield return new WaitForSeconds(_delay);
         int dir = _direction;
         float totalTime = Vector3.Distance(_pos1, _pos2)/_speed;
         while (true)

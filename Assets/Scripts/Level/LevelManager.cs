@@ -8,7 +8,7 @@ namespace Level
     public class LevelManager : MonoBehaviour
     {
         private static LevelManager _instance;
-        private Queue<Transform> _targets;
+        private List<Transform> _targets;
         private List<Transform> _gaurds;
         private List<Transform> _bases;
 
@@ -34,11 +34,11 @@ namespace Level
         
         private void Awake()
         {
-            _targets = new Queue<Transform>();
+            _targets = new List<Transform>();
             _gaurds = new List<Transform>();
             foreach (var target in GameObject.FindObjectsOfType<Target>())
             {
-                _targets.Enqueue(target.transform);
+                _targets.Add(target.transform);
             }
 
             _totalPrisoners = _targets.Count;
@@ -46,24 +46,38 @@ namespace Level
 
         public void GiveBackPrisoner(Transform trf)
         {
-            _targets.Enqueue(trf);
+            _targets.Add(trf);
         }
 
         public void PrisonerSaved()
         {
+            UIManager.Instance?.IncrementScore(25);
             _totalSaved += 1;
             if (_totalSaved >= _totalPrisoners)
             {
-                _gameOver = true;
-                UIManager.Instance?.GameOver();
+                OnGameOver(true);
             }
         }
         
-        public Transform GetNextTarget()
+        public Transform GetNextTarget(Vector3 referencePosition)
         {
             if (_targets.Count <= 0)
                 return null;
-            return _targets.Dequeue();
+            
+            Transform minTrf = null;
+            float minDist = Mathf.Infinity;
+            foreach (var baseCandidate in _targets)
+            {
+                var dist = Vector3.Distance(referencePosition, baseCandidate.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    minTrf = baseCandidate;
+                }
+            }
+
+            _targets.Remove(minTrf);
+            return minTrf;
         }
 
         public void RegisterGuard(Transform prisoner)
@@ -84,8 +98,10 @@ namespace Level
         public void HeroKilled()
         {
             _herosInLevel--;
-            if(_herosInLevel <= 0)
-                UIManager.Instance?.GameOver();
+            if (_herosInLevel <= 0)
+            {
+                OnGameOver(false);
+            }
         }
 
         public void AddBase(Transform baseTrf)
@@ -110,6 +126,16 @@ namespace Level
             }
 
             return minTrf;
+        }
+
+        private void OnGameOver(bool win)
+        {
+            _gameOver = true;
+            foreach (var guard in _gaurds)
+            {
+                Destroy(guard.gameObject);
+            }
+            UIManager.Instance?.GameOver();
         }
     }
 }

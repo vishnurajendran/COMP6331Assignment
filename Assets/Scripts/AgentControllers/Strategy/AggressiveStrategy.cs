@@ -22,7 +22,7 @@ namespace AgentControllers.Strategies
             {
                 // slow my speed down a notch, to let the AI keep up a bit
                 _controller.SetSpeedModifier(GetSpeedModification(guards));
-                move += StayAwayFrom(guards) * _controller.EvadeGuardWeight;
+                move += StayAwayFrom(guards) * (_controller.EvadeGuardWeight * _controller.AggressiveWeight);
             }
             else
             {
@@ -55,7 +55,17 @@ namespace AgentControllers.Strategies
             if (LevelManager.Instance.GuardsInLevel <= 0)
             {
                 _controller.SwitchStrategy(Strategy.Default);
+                return;
             }
+
+            /*if (_controller.Target.CompareTag("Prisoner") && _controller.ReachedTarget())
+            {
+                _controller.SetPrisoner(_controller.Target.GetComponent<Prisoner>());
+                _controller.Prisoner.SetTarget(_controller.transform);
+                _controller.SetTarget(_controller.ClosestBase);
+                _controller.ResetThresholds();
+                _controller.SwitchStrategy(Strategy.Default);
+            }*/
         }
         
         private Vector3 MoveTowards(Guard[] gaurds)
