@@ -194,6 +194,10 @@ namespace AgentControllers
         
         public void CaughtByPlayer(bool killed=false)
         {
+            _guardsTargettingMe.Clear();
+            _isTargetByGuard = false;
+            SetTarget(_prisonerToGoTo);
+            
             if (killed)
             {
                 Debug.Log("Hero Killed!!");
